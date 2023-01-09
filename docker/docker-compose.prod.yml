@@ -1,11 +1,16 @@
 ---
 version: '3'
+
+networks:
+  gateway:
+    external: true
+
 services:
   nginx:
     image: '${PRIMERO_IMAGE_REPOSITORY:-primeroims}/nginx:${PRIMERO_TAG:-latest}'
-    ports:
-      - "80:80"
-      - "443:443"
+    expose:
+      - "80"
+      - "443"
     volumes:
       - 'certbot_certificates:/etc/letsencrypt'
       - 'certbot_challenges:/usr/share/nginx/html/.well-known/acme-challenge'
@@ -15,6 +20,11 @@ services:
     env_file:
       - docker/defaults.env
       - docker/local.env
+    environment:
+      VIRTUAL_HOST: primero.anpdca.ro
+      LETSENCRYPT_HOST: primero.anpdca.ro
+    networks:
+      - gateway
     depends_on:
       - application
     restart: always

@@ -2,7 +2,7 @@
 version: '3'
 
 networks:
-  gateway:
+  primero-stack_gateway:
     external: true
 
 services:
@@ -24,7 +24,7 @@ services:
       VIRTUAL_HOST: primero.anpdca.ro
       LETSENCRYPT_HOST: primero.anpdca.ro
     networks:
-      - gateway
+      - primero-stack_gateway
     depends_on:
       - application
     restart: always

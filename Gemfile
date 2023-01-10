@@ -24,6 +24,9 @@ gem 'jbuilder',            '~> 2.11'   # JSON templating for the API
 gem 'json_schemer',        '~> 0.2'    # Validation for submited JSON
 gem 'minipack',            '~> 0.3'    # An alternative to Webpacker. TODO: Is this still needed? In prod?
 gem 'net-http-persistent', '~> 3.1'    # Thread safe persistent HTTP connections, optional Faraday dependency
+gem 'net-imap'
+gem 'net-pop'
+gem 'net-smtp'
 gem 'nokogiri',            '>= 1.13' # Security assertion on implicit dependency.
 gem 'pg',                  '~> 1.1'    # Ruby PostgreSQL binding
 gem 'prawn',               '~> 2.2'    # PDF generation

@@ -54,7 +54,7 @@ server {
 
     location /login/ {
       limit_req zone=login_app_limit burst=5;
-      try_files @app;
+      try_files "" @app;
     }
 
     try_files $uri/index.html $uri.html $uri @app;

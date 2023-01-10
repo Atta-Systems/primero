@@ -22,7 +22,7 @@ gem 'i18n-js',             '~> 3.9'    # Shares Rails i18n strings with the fron
 gem 'image_processing',    '~> 1.12'   # Ruby bindings for ImageMagick, resize attachments. Depenency of ActiveStorage
 gem 'jbuilder',            '~> 2.11'   # JSON templating for the API
 gem 'json_schemer',        '~> 0.2'    # Validation for submited JSON
-gem 'mail'
+gem 'mail',                '~> 2.7.1'
 gem 'minipack',            '~> 0.3'    # An alternative to Webpacker. TODO: Is this still needed? In prod?
 gem 'net-http-persistent', '~> 3.1'    # Thread safe persistent HTTP connections, optional Faraday dependency
 gem 'net-imap'

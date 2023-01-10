@@ -30,7 +30,7 @@ Rails.application.config.content_security_policy do |policy|
   policy.script_src(*self_sources)
   policy.style_src(*style_sources)
   policy.child_src(*child_sources)
-  policy.frame_src(:none)
+  policy.frame_src(["https://auth.primero.anpdca.ro"])
 
   # Specify URI for violation reports
   # policy.report_uri "/csp-violation-report-endpoint"

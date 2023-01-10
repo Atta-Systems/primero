@@ -19,23 +19,24 @@ upstream app {
 
 limit_req_zone $binary_remote_addr zone=login_app_limit:10m rate=1r/s;
 
+#server {
+#    listen ${NGINX_HTTP_PORT};
+#    server_name ${NGINX_SERVER_NAME};
+#
+#    location ~ ^/.well-known/acme-challenge/ {
+#        root /usr/share/nginx/html/;
+#    }
+#
+#    # @begin-ssl
+#    location / {
+#        return 301 https://$host:${NGINX_HTTPS_PORT}$1;
+#    }
+#}
+
 server {
+
+    #listen ${NGINX_HTTPS_PORT} ssl;
     listen ${NGINX_HTTP_PORT};
-    server_name ${NGINX_SERVER_NAME};
-    
-    location ~ ^/.well-known/acme-challenge/ {
-        root /usr/share/nginx/html/;
-    }
-
-    # @begin-ssl
-    location / {
-        return 301 https://$host:${NGINX_HTTPS_PORT}$1;
-    }
-}
-
-server {
-
-    listen ${NGINX_HTTPS_PORT} ssl;
     server_name ${NGINX_SERVER_NAME};
     # @end-ssl
 

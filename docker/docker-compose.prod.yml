@@ -2,6 +2,7 @@
 version: '3'
 
 networks:
+  default:
   primero-stack_gateway:
     external: true
 

@@ -80,9 +80,9 @@ server {
         deny all;
     }
 
-    location /login/ {
-        limit_req zone=login_app_limit burst=5;
-    }
+    #location /login/ {
+    #    limit_req zone=login_app_limit burst=5;
+    #}
 
     location /api/login/ {
         limit_req zone=login_app_limit burst=5;

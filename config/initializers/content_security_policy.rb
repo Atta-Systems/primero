@@ -28,9 +28,9 @@ Rails.application.config.content_security_policy do |policy|
   policy.media_src(*media_sources)
   policy.object_src(:none)
   policy.script_src(*self_sources)
-  policy.style_src(*style_sources)
+  policy.style_src(*style_sources, 'unsafe-inline')
   policy.child_src(*child_sources)
-  policy.frame_src("https://auth.primero.anpdca.ro/", :self)
+  policy.frame_src('https://auth.primero.anpdca.ro/', :self)
 
   # Specify URI for violation reports
   # policy.report_uri "/csp-violation-report-endpoint"

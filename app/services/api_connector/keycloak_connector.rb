@@ -38,11 +38,9 @@ class ApiConnector::KeycloakConnector < ApiConnector::AbstractConnector
 
   def update(user)
     kc_id = user['identity_provider_sync']['keycloak']['id']
-    return nil unless kc_id
-
     status, response = connection.put("/admin/realms/#{realm}/users/#{kc_id}", create_user_representation(user))
     log_response(user, status)
-    response_attributes(response)
+    response_attributes(user['identity_provider_sync']['keycloak'].merge(response))
   end
 
   def syncable?(user)
@@ -52,7 +50,7 @@ class ApiConnector::KeycloakConnector < ApiConnector::AbstractConnector
   end
 
   def new?(user)
-    !user&.identity_provider_sync&.dig('keycloak')
+    !user&.identity_provider_sync&.dig('keycloak')&.dig('id')
   end
 
   def relevant_updates?(user)

@@ -1,10 +1,16 @@
 # frozen_string_literal: true
 
+# This is the sync connector for the Keycloak identity provider.
+
 class ApiConnector::KeycloakConnector < ApiConnector::AbstractConnector
   IDENTIFIER = 'keycloak'
 
   def self.id
     IDENTIFIER
+  end
+
+  def realm
+    ENV['KEYCLOAK_SYNC_REALM']
   end
 
   def initialize(options = {})
@@ -14,7 +20,6 @@ class ApiConnector::KeycloakConnector < ApiConnector::AbstractConnector
         'Authorization' => "Bearer #{ENV['KEYCLOAK_ADMIN_TOKEN']}"
       }
     }
-    self.realm = ENV['KEYCLOAK_SYNC_REALM']
     super(options.merge(extra_opts))
   end
 

@@ -73,7 +73,7 @@ class ApiConnector::KeycloakConnector < ApiConnector::AbstractConnector
   end
 
   def response_attributes(response)
-    full_name = "#{response['firstName']}#{' ' if response['lastName']}#{response['firstName']}"
+    full_name = "#{response['firstName']}#{' ' if response['lastName']}#{response['lastName']}"
 
     {
       identity_provider_sync: {

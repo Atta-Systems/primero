@@ -28,7 +28,7 @@ Rails.application.config.content_security_policy do |policy|
   policy.media_src(*media_sources)
   policy.object_src(:none)
   policy.script_src(*self_sources)
-  policy.style_src(*style_sources, 'unsafe-inline')
+  policy.style_src(*style_sources)
   policy.child_src(*child_sources)
   policy.frame_src('https://auth.primero.anpdca.ro/', :self)
 

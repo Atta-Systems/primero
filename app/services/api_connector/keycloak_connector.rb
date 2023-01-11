@@ -25,6 +25,7 @@ class ApiConnector::KeycloakConnector < ApiConnector::AbstractConnector
 
   def fetch(user)
     response = connection.get("/admin/realms/#{realm}/users?username=#{user.user_name}")
+    Rails.logger.info(response)
     response[0]
   end
 

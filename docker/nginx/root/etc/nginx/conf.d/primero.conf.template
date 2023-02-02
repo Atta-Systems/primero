@@ -34,12 +34,15 @@ limit_req_zone $binary_remote_addr zone=login_app_limit:10m rate=1r/s;
 #}
 
 server {
-
+    listen ${NGINX_HTTP_PORT};
     #listen ${NGINX_HTTPS_PORT} ssl;
     server_name www.${NGINX_SERVER_NAME} ${NGINX_SERVER_NAME};
     # @end-ssl
 
-    if ($request_method !~ ^(GET|PUT|POST|PATCH|DELETE)$ ) {
+#    if ($request_method !~ ^(GET|PUT|POST|PATCH|DELETE)$ ) {
+#        return 444;
+#    }
+    if ($request_method = HEAD) {
         return 444;
     }
 

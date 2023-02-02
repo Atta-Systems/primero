@@ -61,11 +61,11 @@ create_or_update_system_setting(
     action_plan: 'Action Plan',
     gbv_closure: 'GBV Closure'
   },
-  approvals_labels_ar: {
-    assessment: 'Assessment',
-    case_plan: 'Case Plan',
-    closure: 'Closure',
-    action_plan: 'Action Plan',
-    gbv_closure: 'GBV Closure'
-  }
+  # approvals_labels_ar: {
+  #   assessment: 'Assessment',
+  #   case_plan: 'Case Plan',
+  #   closure: 'Closure',
+  #   action_plan: 'Action Plan',
+  #   gbv_closure: 'GBV Closure'
+  # }
 )

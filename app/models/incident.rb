@@ -16,6 +16,7 @@ class Incident < ApplicationRecord
   include ReportableLocation
   include GenderBasedViolence
   include MonitoringReportingMechanism
+  include LocationCacheable
 
   store_accessor(
     :data,
@@ -91,6 +92,7 @@ class Incident < ApplicationRecord
 
   after_initialize :set_unique_id
   before_save :copy_from_case
+  before_save :update_violations
   # TODO: Reconsider whether this is necessary.
   # We will only be creating an incident from a case using a special business logic that
   # will certainly trigger a reindex on the case
@@ -98,7 +100,7 @@ class Incident < ApplicationRecord
   after_create :add_alert_on_case, :add_case_history
 
   def index_record
-    Sunspot.index!(self.case) if self.case.present?
+    Sunspot.index(self.case) if self.case.present?
   end
 
   alias super_defaults defaults
@@ -244,7 +246,7 @@ class Incident < ApplicationRecord
       perpetrators.reload if association_classes.include?(Perpetrator)
     end
 
-    Sunspot.index!(self)
+    Sunspot.index(self)
   end
 
   def associations_as_data(_current_user)
@@ -276,6 +278,14 @@ class Incident < ApplicationRecord
     violations_result
   end
 
+  def update_violations
+    should_update_violations = !new_record? && module_id == PrimeroModule::MRM &&
+                               (incident_date_changed? || incident_date_end_changed?)
+
+    return unless should_update_violations
+
+    violations.each(&:calculate_late_verifications)
+  end
 
   def reporting_location_property
     'incident_reporting_location_config'

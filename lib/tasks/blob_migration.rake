@@ -12,12 +12,20 @@ def download_from(from)
 
   ActiveStorage::Blob.service = from_service
 
-  ActiveStorage::Blob.find_each do |blob|
-    puts "Downloading blob #{blob.key}"
-    file = File.new("/tmp/blobs/#{blob.key}", 'w')
-    file.binmode
-    file << blob.download
-    file.close
+  ActiveStorage::Blob.find_in_batches(batch_size: 50) do |batch|
+    # Spawn a new process for each batch. This is a disgusting hack to avoid running out of memory.
+    Process.fork do
+      puts "Spawning process for batch #{batch.first.id} - #{batch.last.id}, size: #{batch.size}"
+      batch.each do |blob|
+        puts "Downloading blob #{blob.key}"
+        file = File.new("/mnt/migrate/blobs/#{blob.key}", 'w')
+        file.binmode
+        file << blob.download
+        file.close
+      end
+    end
+    Process.waitall
+
   rescue ActiveStorage::FileNotFoundError
     puts "Rescued by FileNotFoundError. Key: #{blob.key}"
     next

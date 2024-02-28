@@ -44,15 +44,15 @@ const setupMsal = (idp, historyObj) => {
 
   const identityScope = idpObj.identity_scope || [""];
   const domainHint = idpObj.domain_hint;
-  const msalConfig = setMsalConfig(idpObj);
   const loginRequest = getLoginRequest(identityScope, domainHint);
   const tokenRequest = getTokenRequest(identityScope);
 
   if (!msalApp) {
     forceStandardOIDC = idpObj.force_standard_oidc === true;
-    msalApp = setMsalApp(msalConfig, forceStandardOIDC, historyObj);
-  }
+    const msalConfig = setMsalConfig(idpObj, forceStandardOIDC);
 
+    msalApp = setMsalApp(msalConfig, historyObj);
+  }
   localStorage.setItem(SELECTED_IDP, idpObj.unique_id);
 
   return { loginRequest, tokenRequest };
@@ -93,9 +93,13 @@ export const signOut = () => {
       // OIDC front-channel logout can take a post_logout_redirect_uri parameter, which we set in the msal config
       // However, if this parameter is included, either client_id or id_token_hint is required
       // https://openid.net/specs/openid-connect-rpinitiated-1_0.html#RPLogout
-      // Since MSAL does not offer any way to add parameters to logout, we piggyback on the correlationId argument
-      // The GUID is what msal uses as the default when the argument is not specified
-      msalApp.logout(`${createNewGuid()}&client_id=${encodeURIComponent(msalApp.config.auth.clientId)}`);
+      msalApp.logoutPopup({
+        authority: msalApp.config.auth.authority,
+        mainWindowRedirectUri: `${msalApp.config.auth.authority}/protocol/openid-connect/logout`,
+        extraQueryParameters: {
+          client_id: msalApp.config.auth.clientId
+        }
+      });
     } else {
       msalApp.logout();
     }

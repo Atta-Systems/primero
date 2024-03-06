@@ -1,8 +1,10 @@
+// Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 /* eslint-disable react-hooks/exhaustive-deps, no-param-reassign */
 
 import MUIDataTable from "mui-datatables";
 import PropTypes from "prop-types";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useDispatch } from "react-redux";
 import { push } from "connected-react-router";
 import { fromJS, List } from "immutable";
@@ -10,7 +12,7 @@ import { ThemeProvider } from "@material-ui/core/styles";
 
 import { dataToJS, ConditionalWrapper, useThemeHelper, useMemoizedSelector } from "../../../libs";
 import { useI18n } from "../../i18n";
-import { RECORD_PATH } from "../../../config";
+import { MAX_OFFLINE_ROWS_PER_PAGE, RECORD_PATH } from "../../../config/constants";
 import { ALERTS_COLUMNS } from "../../record-list/constants";
 import recordListTheme from "../theme";
 import { NAME } from "../config";
@@ -43,6 +45,7 @@ const Datatable = ({
   showCustomToolbar,
   targetRecordType,
   title,
+  customToolbarSelect = null,
   useReportingLocations
 }) => {
   const dispatch = useDispatch();
@@ -55,12 +58,11 @@ const Datatable = ({
   const hasData = !loading && Boolean(data?.size);
   const order = filters?.get("order");
   const orderBy = filters?.get("order_by");
-  const componentColumns = buildComponentColumns(
-    typeof columns === "function" ? columns(data) : columns,
-    order,
-    orderBy
+  const componentColumns = useMemo(
+    () => buildComponentColumns(typeof columns === "function" ? columns(data) : columns, order, orderBy),
+    [columns, data, order, orderBy]
   );
-  const columnsName = componentColumns.map(col => col.name);
+  const columnsName = useMemo(() => componentColumns.map(col => col.name), [componentColumns]);
 
   const [sortDir, setSortDir] = useState(order);
 
@@ -73,7 +75,8 @@ const Datatable = ({
     RECORD_PATH.cases,
     RECORD_PATH.incidents,
     RECORD_PATH.tracing_requests,
-    RECORD_PATH.registry_records
+    RECORD_PATH.registry_records,
+    RECORD_PATH.families
   ].includes(recordType);
 
   const translatedRecords = useTranslatedRecords({
@@ -158,36 +161,39 @@ const Datatable = ({
     selectedRecords && Object.keys(selectedRecords).length && selectedRecords[currentPage];
 
   // eslint-disable-next-line react/no-multi-comp, react/display-name
-  const customToolbarSelect = (selectedRows, displayData) => (
-    <CustomToolbarSelect
-      displayData={displayData}
-      recordType={recordType}
-      perPage={per}
-      selectedRecords={selectedRecords}
-      selectedRows={selectedRows}
-      setSelectedRecords={setSelectedRecords}
-      totalRecords={total}
-      page={page}
-      fetchRecords={onTableChange}
-      selectedFilters={defaultFilters.merge(filters)}
-      canSelectAll={canSelectAll}
-    />
-  );
+  const componentCustomToolbarSelect =
+    customToolbarSelect ||
+    ((selectedRows, displayData) => (
+      <CustomToolbarSelect
+        displayData={displayData}
+        recordType={recordType}
+        perPage={per}
+        selectedRecords={selectedRecords}
+        selectedRows={selectedRows}
+        setSelectedRecords={setSelectedRecords}
+        totalRecords={total}
+        page={page}
+        fetchRecords={onTableChange}
+        selectedFilters={defaultFilters.merge(filters)}
+        canSelectAll={canSelectAll}
+      />
+    ));
 
   const options = {
     ...defaultTableOptions({
       currentPage,
-      customToolbarSelect,
+      customToolbarSelect: componentCustomToolbarSelect,
       handleTableChange,
       i18n,
-      per,
+      per: !online && per > MAX_OFFLINE_ROWS_PER_PAGE ? MAX_OFFLINE_ROWS_PER_PAGE : per,
       selectedRecords,
       selectedRecordsOnCurrentPage,
       setSelectedRecords,
       showCustomToolbar,
       sortDir,
       title,
-      total
+      total,
+      online
     }),
     isRowSelectable: dataIndex => {
       if (isRowSelectable) {
@@ -208,16 +214,19 @@ const Datatable = ({
         }
       }
     },
-    customToolbarSelect,
+    customToolbarSelect: componentCustomToolbarSelect,
     ...tableOptionsProps
   };
 
-  const tableData = validRecordTypes || localizedFields ? dataToJS(translatedRecords) : dataToJS(records);
+  const tableData = useMemo(
+    () => (validRecordTypes || localizedFields ? dataToJS(translatedRecords) : dataToJS(records)),
+    [records, validRecordTypes, translatedRecords, localizedFields]
+  );
 
-  const rowKeys = typeof tableData?.[0] !== "undefined" ? Object.keys(tableData[0]) : [];
+  const rowKeys = useMemo(() => (typeof tableData?.[0] !== "undefined" ? Object.keys(tableData[0]) : []), [tableData]);
 
-  const dataWithAlertsColumn =
-    rowKeys && rowKeys.includes(ALERTS_COLUMNS.alert_count, ALERTS_COLUMNS.flag_count)
+  const dataWithAlertsColumn = useMemo(() => {
+    return rowKeys && rowKeys.includes(ALERTS_COLUMNS.alert_count, ALERTS_COLUMNS.flag_count)
       ? tableData.map(row => ({
           ...row,
           alerts: {
@@ -228,6 +237,7 @@ const Datatable = ({
           }
         }))
       : tableData;
+  }, [tableData, rowKeys]);
 
   const components = {
     // eslint-disable-next-line react/display-name, react/no-multi-comp
@@ -263,6 +273,7 @@ Datatable.propTypes = {
   canSelectAll: PropTypes.bool,
   checkOnline: PropTypes.bool,
   columns: PropTypes.oneOfType([PropTypes.object, PropTypes.func, PropTypes.array]),
+  customToolbarSelect: PropTypes.func,
   data: PropTypes.instanceOf(List),
   defaultFilters: PropTypes.object,
   errors: PropTypes.array,

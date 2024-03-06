@@ -1,3 +1,5 @@
+// Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 import { fromJS } from "immutable";
 
 import NAMESPACE from "../namespace";
@@ -9,7 +11,10 @@ import {
   getPasswordResetLoading,
   getServerErrors,
   getSavingRecord,
-  getSavingNewPasswordReset
+  getSavingNewPasswordReset,
+  getRecordsUpdate,
+  getUserSaved,
+  getTotalUsersEnabled
 } from "./selectors";
 
 const roles = [
@@ -140,6 +145,44 @@ describe("<UsersForm /> - Selectors", () => {
       const loading = getPasswordResetLoading(loadingState);
 
       expect(loading).to.be.false;
+    });
+  });
+
+  describe("getRecordsUpdate", () => {
+    it("should return true if it's loading", () => {
+      const currentState = fromJS({ records: { users: { recordsUpdate: true } } });
+
+      const recordsUpdate = getRecordsUpdate(currentState);
+
+      expect(recordsUpdate).to.be.true;
+    });
+  });
+
+  describe("getUserSaved", () => {
+    it("should return true if user was saved", () => {
+      const currentState = fromJS({ records: { users: { userSaved: true } } });
+
+      const loading = getUserSaved(currentState);
+
+      expect(loading).to.be.true;
+    });
+
+    it("should return false if it's was NOT saved", () => {
+      const currentState = fromJS({ records: { users: { userSaved: false } } });
+
+      const loading = getUserSaved(currentState);
+
+      expect(loading).to.be.false;
+    });
+  });
+
+  describe("getTotalUsersEnabled", () => {
+    it("should return true if it's loading", () => {
+      const currentState = fromJS({ records: { users: { metadata: { total_enabled: 25 } } } });
+
+      const totalUsersEnabled = getTotalUsersEnabled(currentState);
+
+      expect(totalUsersEnabled).to.equal(25);
     });
   });
 });

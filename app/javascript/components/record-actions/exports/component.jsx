@@ -1,3 +1,5 @@
+// Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 import { yupResolver } from "@hookform/resolvers/yup";
 import isEmpty from "lodash/isEmpty";
 import uniq from "lodash/uniq";
@@ -13,6 +15,7 @@ import { RECORD_TYPES } from "../../../config";
 import { useMemoizedSelector } from "../../../libs";
 import ActionDialog from "../../action-dialog";
 import { useApp } from "../../application";
+import { fetchAgencyLogoOptions } from "../../application/action-creators";
 import { getAgencyLogos, getAgencyLogosPdf, getExportRequirePassword } from "../../application/selectors";
 import { whichFormMode } from "../../form";
 import FormSectionField from "../../form/components/form-section-field";
@@ -25,6 +28,7 @@ import PdfExporter from "../../pdf-exporter";
 import { getUser } from "../../user/selectors";
 import { getRecordForms } from "../../record-form/selectors";
 import { getMetadata } from "../../record-list/selectors";
+import { buildAppliedFilters } from "../utils";
 
 import { saveExport } from "./action-creators";
 import {
@@ -44,15 +48,7 @@ import {
   PASSWORD_FIELD
 } from "./constants";
 import form from "./form";
-import {
-  buildFields,
-  exporterFilters,
-  exportFormsOptions,
-  formatFields,
-  formatFileName,
-  isCustomExport,
-  isPdfExport
-} from "./utils";
+import { buildFields, exportFormsOptions, formatFields, formatFileName, isCustomExport, isPdfExport } from "./utils";
 
 const FORM_ID = "exports-record-form";
 
@@ -142,7 +138,10 @@ const Component = ({
     getRecordForms(state, {
       recordType: RECORD_TYPES[recordType],
       primeroModule: selectedModule || record?.get("module_id"),
-      checkPermittedForms: true
+      checkPermittedForms: true,
+      recordId: record?.get("id"),
+      isEditOrShow: true,
+      includeDefaultForms: false
     })
   );
 
@@ -191,7 +190,7 @@ const Component = ({
       .filter((_r, i) => selectedRecords?.[currentPage]?.includes(i))
       .map(r => r.short_id);
 
-    const filters = exporterFilters(
+    const filters = buildAppliedFilters(
       isShowPage,
       allCurrentRowsSelected,
       shortIds,
@@ -277,6 +276,12 @@ const Component = ({
       formMethods.setValue(FORM_TO_EXPORT_FIELD, []);
     }
   }, [individualFields]);
+
+  useEffect(() => {
+    if (agencyLogosPdf.isEmpty()) {
+      dispatch(fetchAgencyLogoOptions());
+    }
+  }, [agencyLogosPdf.isEmpty()]);
 
   const onSubmit = data => {
     submitHandler({

@@ -1,11 +1,13 @@
 # frozen_string_literal: true
 
+# Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 require 'rails_helper'
 
 describe Api::V2::AssignsController, type: :request do
   include ActiveJob::TestHelper
   before do
-    clean_data(PrimeroModule, Role, UserGroup, User, Child, Transition)
+    clean_data(User, Role, PrimeroModule, UserGroup, Child, Transition)
     @primero_module = PrimeroModule.new(name: 'CP')
     @primero_module.save(validate: false)
     @permission_assign_case = Permission.new(
@@ -22,7 +24,7 @@ describe Api::V2::AssignsController, type: :request do
     @user2.save(validate: false)
     @case = Child.create(
       data: {
-        name: 'Test', owned_by: 'user1',
+        name: 'Test', owned_by: 'user1', age: 7,
         module_id: @primero_module.unique_id
       }
     )
@@ -62,7 +64,7 @@ describe Api::V2::AssignsController, type: :request do
     it 'assigns a the record to the target user' do
       sign_in(@user1)
       params = { data: { transitioned_to: 'user2', notes: 'Test Notes' } }
-      post "/api/v2/cases/#{@case.id}/assigns", params: params
+      post("/api/v2/cases/#{@case.id}/assigns", params:)
 
       expect(response).to have_http_status(200)
       expect(json['data']['record_id']).to eq(@case.id.to_s)
@@ -76,7 +78,7 @@ describe Api::V2::AssignsController, type: :request do
     it "get a forbidden message if the user doesn't have assign permission" do
       login_for_test
       params = { data: { transitioned_to: 'user2', notes: 'Test Notes' } }
-      post "/api/v2/cases/#{@case.id}/assigns", params: params
+      post("/api/v2/cases/#{@case.id}/assigns", params:)
 
       expect(response).to have_http_status(403)
       expect(json['errors'][0]['status']).to eq(403)
@@ -89,26 +91,23 @@ describe Api::V2::AssignsController, type: :request do
     before :each do
       @case2 = Child.create(
         data: {
-          name: 'Test2', owned_by: 'user1',
+          name: 'Test2', owned_by: 'user1', age: 5,
           module_id: @primero_module.unique_id
         }
       )
     end
+    Sunspot.commit
 
     context 'bulk assign with valid permissions' do
       it 'assigns multiple records to the target user' do
         sign_in(@user1)
-        params = { data: { ids: [@case.id, @case2.id], transitioned_to: 'user2', notes: 'Test Notes' } }
-        post '/api/v2/cases/assigns', params: params
+        filters = { status: ['open'], record_state: ['true'], age: ['6..11'] }
+        params = { data: { transitioned_to: 'user2', notes: 'Test Notes', filters: } }
+        post('/api/v2/cases/assigns', params:)
 
         expect(response).to have_http_status(200)
-        expect(json['data'].size).to eq(2)
-        expect(json['data'][0]['record_id']).to eq(@case.id.to_s)
-        expect(json['data'][0]['transitioned_to']).to eq('user2')
-        expect(json['data'][0]['transitioned_by']).to eq('user1')
-        expect(json['data'][1]['record_id']).to eq(@case2.id.to_s)
-        expect(json['data'][1]['transitioned_to']).to eq('user2')
-        expect(json['data'][1]['transitioned_by']).to eq('user1')
+        expect(json['data']['filters'].keys).to match_array(%w[status record_state age])
+        expect(json['data']['transitioned_to']).to eq('user2')
 
         expect(audit_params['action']).to eq('bulk_assign')
       end
@@ -125,22 +124,27 @@ describe Api::V2::AssignsController, type: :request do
         @user1.role = role
         @user1.save(validate: false)
       end
+    end
 
-      it 'reports errors if there was a problem assigning at least one of the record' do
+    context 'when the total of records is more than MAX_BULK_RECORDS' do
+      before do
+        stub_const('Assign::MAX_BULK_RECORDS', -1)
+      end
+
+      it 'raises Errors::ForbiddenOperation' do
         sign_in(@user1)
-        params = { data: { ids: [@case.id, @case2.id], transitioned_to: 'user2', notes: 'Test Notes' } }
-        post '/api/v2/cases/assigns', params: params
+        filters = { short_id: %w[fbd6839 4c7084f 2d4bc3d] }
+        params = { data: { transitioned_to: 'user2', notes: 'Test Notes', filters: } }
 
-        expect(response).to have_http_status(200)
-        expect(json['data'].size).to eq(0)
-        expect(json['errors'].size).to eq(2)
-        expect(json['errors'][0]['detail']).to eq('transitioned_to')
+        post('/api/v2/cases/assigns', params:)
+
+        expect(response).to have_http_status(403)
       end
     end
   end
 
   after do
     clear_enqueued_jobs
-    clean_data(PrimeroModule, Role, UserGroup, User, Child, Transition)
+    clean_data(User, Role, PrimeroModule, UserGroup, Child, Transition)
   end
 end

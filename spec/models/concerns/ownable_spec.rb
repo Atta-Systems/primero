@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
+# Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 require 'rails_helper'
 
 describe Ownable do
   before do
-    clean_data(User, Child, PrimeroModule, UserGroup, Agency)
+    clean_data(User, Child, Role, PrimeroModule, UserGroup, Agency)
 
     @primero_module = PrimeroModule.new(name: 'CP')
     @primero_module.save(validate: false)
@@ -269,6 +271,6 @@ describe Ownable do
   end
 
   after do
-    clean_data(User, Child, PrimeroModule, UserGroup, Agency, Role, FormSection, Field, PrimeroProgram)
+    clean_data(User, Child, Role, PrimeroModule, UserGroup, Agency, FormSection, Field, PrimeroProgram)
   end
 end

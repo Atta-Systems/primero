@@ -1,3 +1,5 @@
+// Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 import { Dialog, DialogActions, DialogContent, DialogTitle, IconButton } from "@material-ui/core";
 import AddIcon from "@material-ui/icons/Add";
 import CloseIcon from "@material-ui/icons/Close";
@@ -18,7 +20,7 @@ import { useI18n } from "../../i18n";
 import { applyFilters } from "../../index-filters";
 import { getRecordsData } from "../../index-table";
 import { enqueueSnackbar } from "../../notifier";
-import { DEFAULT_FILTERS } from "../constants";
+import { SEARCH_OR_CREATE_FILTERS } from "../constants";
 
 import { FORM_ID, NAME } from "./constants";
 import { searchForm } from "./forms";
@@ -51,7 +53,7 @@ const Component = ({ moduleUniqueId, open, recordType, setOpen }) => {
         dispatch(
           applyFilters({
             recordType,
-            data: { ...DEFAULT_FILTERS, ...formData, id_search: true }
+            data: { ...SEARCH_OR_CREATE_FILTERS, ...formData, id_search: true }
           })
         );
       }

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 require 'csv'
 
 # Exports the top level fields of a record to a flat CSV
@@ -15,7 +17,7 @@ class Exporters::CsvExporter < Exporters::BaseExporter
     end
 
     def supported_models
-      [Child, Incident, TracingRequest, RegistryRecord]
+      [Child, Incident, TracingRequest, RegistryRecord, Family]
     end
 
     def excluded_field_names
@@ -23,27 +25,46 @@ class Exporters::CsvExporter < Exporters::BaseExporter
     end
   end
 
-  def export(records, user, options = {})
-    establish_export_constraints(records, user, options)
+  def export(records)
+    super(records)
     csv_export = CSVSafe.generate do |rows|
-      rows << headers(fields) if @called_first_time.nil?
-      @called_first_time ||= true
-
-      records.each do |record|
-        rows << row(record, fields)
+      if single_record_export
+        export_single_record(records, rows)
+      else
+        export_records(records, rows)
       end
     end
     buffer.write(csv_export)
   end
 
+  def export_records(records, rows)
+    rows << headers if @called_first_time.nil?
+    @called_first_time ||= true
+
+    records.each do |record|
+      establish_record_constraints(record)
+      rows << row(record, export_constraints.fields)
+    end
+  end
+
+  def export_single_record(records, rows)
+    establish_record_constraints(records.first)
+    rows << headers if @called_first_time.nil?
+    @called_first_time ||= true
+
+    rows << row(records.first, fields)
+  end
+
   private
 
-  def headers(fields)
-    ['id'] + fields.map(&:name)
+  def headers
+    ['id'] + field_names
   end
 
   def row(record, fields)
     [record.id] + fields.map do |field|
+      next if non_permitted_field?(field)
+
       record.data[field.name]
     end
   end

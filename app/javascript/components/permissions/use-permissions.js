@@ -1,3 +1,5 @@
+// Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 import isEmpty from "lodash/isEmpty";
 import { useMemo } from "react";
 
@@ -31,7 +33,7 @@ const usePermissions = (entity, abilities) => {
       }, {}),
       permittedAbilities
     };
-  }, [permittedAbilities, abilities, getPermissions]);
+  }, [permittedAbilities, abilities]);
 
   return permissions;
 };

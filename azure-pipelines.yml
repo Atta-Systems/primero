@@ -1,3 +1,5 @@
+# Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 trigger:
   branches:
     exclude:
@@ -11,8 +13,8 @@ resources:
 
 variables:
   # Container registry service connection established during pipeline creation
-  vmImageName: 'Ubuntu-18.04'
-  latestBranch: master
+  vmImageName: 'Ubuntu-22.04'
+  latestBranch: main
 
 jobs:
   - job: Test
@@ -35,11 +37,11 @@ jobs:
         displayName: 'Install npm packages'
       - bash: |
           apt-get update
-          apt-get install -y libpq-dev unzip libsodium-dev postgresql-client-10
+          apt-get install -y libpq-dev unzip libsodium-dev
         displayName: 'Install dependencies'
       - bash: |
           . ~/.bash_env
-          rbenv global 2.7.4
+          rbenv global 3.2.2
           bundle install --without production --path=${BUNDLE_PATH:-vendor/bundle}
         displayName: 'Bundle install'
         env:
@@ -67,7 +69,12 @@ jobs:
       - bash: |
           npm run test:batch:4
         displayName: 'Run Integration test Batch 4'
-
+      - bash: |
+          npm run test:batch:5
+        displayName: 'Run Integration test Batch 5'
+      - bash: |
+          npm run test:new -- --maxWorkers=2
+        displayName: 'Run Integration test (New)'
 
   - job: Build
     displayName: 'Build and push'
@@ -81,6 +88,7 @@ jobs:
       - bash: echo "##vso[task.setvariable variable=latestpg10]$([[ ${BUILD_SOURCEBRANCH} == *${LATESTBRANCH} ]] && echo 'latest-pg10')"
       - bash: echo "##vso[task.setvariable variable=latestpg11]$([[ ${BUILD_SOURCEBRANCH} == *${LATESTBRANCH} ]] && echo 'latest-pg11')"
       - bash: echo "##vso[task.setvariable variable=latestpg14]$([[ ${BUILD_SOURCEBRANCH} == *${LATESTBRANCH} ]] && echo 'latest-pg14')"
+      - bash: echo "##vso[task.setvariable variable=latestpg15]$([[ ${BUILD_SOURCEBRANCH} == *${LATESTBRANCH} ]] && echo 'latest-pg15')"
       - task: CmdLine@2
         displayName: 'Build Primero Docker images'
         inputs:
@@ -173,3 +181,12 @@ jobs:
           tags: |
             $(tag)-pg14
             $(latestpg14)
+      - task: Docker@2
+        displayName: 'Postgres - Push an image to Dockerhub'
+        inputs:
+          containerRegistry: 'dockerhub-primeroims'
+          repository: 'primeroims/postgres'
+          command: 'push'
+          tags: |
+            $(tag)-pg15
+            $(latestpg15)

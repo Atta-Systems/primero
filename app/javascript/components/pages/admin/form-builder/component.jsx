@@ -1,3 +1,5 @@
+// Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 /* eslint-disable react/display-name,  react/no-multi-comp */
 import { useEffect, useState } from "react";
 import { fromJS } from "immutable";
@@ -37,13 +39,7 @@ import {
   getServerErrors,
   getUpdatedFormIds
 } from "./selectors";
-import {
-  calculateFormParams,
-  conditionsToFieldArray,
-  convertToFieldsObject,
-  getFieldsTranslations,
-  getSubformErrorMessages
-} from "./utils";
+import { calculateFormParams, conditionsToFieldArray, convertToFieldsObject, getSubformErrorMessages } from "./utils";
 import css from "./styles.css";
 
 const Component = ({ mode }) => {
@@ -183,11 +179,6 @@ const Component = ({ mode }) => {
         methods.reset({
           ...formData,
           selected_locale_id: selectedLocaleId,
-          translations: {
-            name: formData.name,
-            description: formData.description,
-            fields: getFieldsTranslations(fieldTree)
-          },
           skip_logic: !selectedForm.getIn(["display_conditions", "disabled"], true),
           display_conditions: displayConditions
         });

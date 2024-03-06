@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
+# Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 require 'rails_helper'
 
 describe IncidentCreationService do
-  before(:each) { clean_data(Child, Incident, PrimeroModule, User, Role) }
+  before(:each) { clean_data(User, Incident, Child, Role, PrimeroModule) }
   let(:module_cp) do
     module_cp = PrimeroModule.new(
       unique_id: 'primeromodule-cp',
@@ -34,11 +36,11 @@ describe IncidentCreationService do
     role.save(validate: false) && role
   end
   let(:user_cp) do
-    user = User.new(user_name: 'user_cp', full_name: 'Test User CP', role: role)
+    user = User.new(user_name: 'user_cp', full_name: 'Test User CP', role:)
     user.save(validate: false) && user
   end
   let(:user_gbv) do
-    user = User.new(user_name: 'user_gbv', full_name: 'Test User GBV', role: role)
+    user = User.new(user_name: 'user_gbv', full_name: 'Test User GBV', role:)
     user.save(validate: false) && user
   end
   let(:case_cp) do
@@ -191,5 +193,5 @@ describe IncidentCreationService do
     end
   end
 
-  after { clean_data(Child, Incident, PrimeroModule, User, Role) }
+  after { clean_data(User, Incident, Child, Role, PrimeroModule) }
 end

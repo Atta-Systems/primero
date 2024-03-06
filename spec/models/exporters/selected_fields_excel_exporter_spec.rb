@@ -1,13 +1,15 @@
 # frozen_string_literal: true
 
+# Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 require 'rails_helper'
 require 'roo'
 
-xdescribe Exporters::SelectedFieldsExcelExporter do
+describe Exporters::SelectedFieldsExcelExporter do
   before :each do
     clean_data(
-      Agency, Role, UserGroup, User, PrimeroProgram,
-      Field, FormSection, PrimeroModule, Child
+      Alert, User, Agency, Role, UserGroup, PrimeroModule, PrimeroProgram,
+      Field, FormSection, Child, Referral
     )
 
     @primero_module = create(
@@ -129,6 +131,14 @@ xdescribe Exporters::SelectedFieldsExcelExporter do
     )
     form5.save!
 
+    form6 = FormSection.new(
+      name: 'cases_test_form_6', parent_form: 'case',
+      order_form_group: 0, order: 6, order_subform: 0, form_group_id: 'cases_test_form_6',
+      unique_id: 'cases_test_form_6'
+    )
+    form6.fields << Field.new(name: 'name_first', type: Field::TEXT_FIELD, display_name: 'name_first', order: 0)
+    form6.save!
+
     agency = Agency.create(
       name: 'agency one', agency_code: '1111',
       name_en: 'My English Agency', name_es: 'My Spanish Agency'
@@ -195,7 +205,7 @@ xdescribe Exporters::SelectedFieldsExcelExporter do
         ]
       ),
       create(:child, 'name_first' => 'Name2', 'name_last' => 'LastName2', 'id' => '00000000005'),
-      create(:child, 'name_first' => 'Name3', 'name_last' => 'LastName3', 'id' => '00000000006'),
+      create(:child, 'name_first' => 'Name3', 'name_last' => 'LastName3', 'id' => '00000000006')
     ]
 
     @record_with_special_id = [
@@ -214,12 +224,23 @@ xdescribe Exporters::SelectedFieldsExcelExporter do
     @user_es = create(:user, user_name: 'fakeadmin_es', role: @role, locale: :es)
     @role_subform = create(:role, modules: [@primero_module], form_sections: [subform2, form1, form2, form3])
     @user_subform = create(:user, user_name: 'fakeadmin_subform', role: @role_subform)
-    @total_of_fields = 17
+    @role_user_referral = create(
+      :role, modules: [@primero_module], form_sections: [form1, form2, form3, form_gbv, form4, form5, form6]
+    )
+    @role_referral = create(:role, form_sections: [form6], modules: [@primero_module])
+    @user_referral = create(:user, user_name: 'fakerefer', role: @role_user_referral)
+
+    Referral.create!(
+      transitioned_by: @user_en.user_name, transitioned_to: @user_referral.user_name, record: @records[1],
+      consent_overridden: true, authorized_role_unique_id: @role_referral.unique_id
+    )
+
+    @total_of_fields = 18
   end
 
   describe 'Export format' do
     let(:workbook) do
-      data = Exporters::SelectedFieldsExcelExporter.export(@records, @user_en, {})
+      data = Exporters::SelectedFieldsExcelExporter.export(@records, nil, { user: @user_en }, {})
       Roo::Spreadsheet.open(StringIO.new(data).set_encoding('ASCII-8BIT'), extension: :xlsx)
     end
 
@@ -243,7 +264,7 @@ xdescribe Exporters::SelectedFieldsExcelExporter do
     end
 
     it 'contains the correct created_organization es name' do
-      data = Exporters::SelectedFieldsExcelExporter.export(@records, @user_es, {})
+      data = Exporters::SelectedFieldsExcelExporter.export(@records, nil, { user: @user_es }, {})
       workbook_es = Roo::Spreadsheet.open(StringIO.new(data).set_encoding('ASCII-8BIT'), extension: :xlsx)
       sheet = workbook_es.sheet(workbook_es.sheets.last)
       created_organization_values = sheet.column(2).compact
@@ -270,7 +291,9 @@ xdescribe Exporters::SelectedFieldsExcelExporter do
 
   context 'Selected forms' do
     let(:workbook) do
-      data = Exporters::SelectedFieldsExcelExporter.export(@records, @user_en, form_unique_ids: %w[cases_test_form_1])
+      data = Exporters::SelectedFieldsExcelExporter.export(
+        @records, nil, { user: @user_en }, { form_unique_ids: %w[cases_test_form_1] }
+      )
       Roo::Spreadsheet.open(StringIO.new(data).set_encoding('ASCII-8BIT'), extension: :xlsx)
     end
 
@@ -290,21 +313,24 @@ xdescribe Exporters::SelectedFieldsExcelExporter do
     context "when field of type subform does' have the same name of their subform" do
       let(:workbook_subform) do
         record_data = Exporters::SelectedFieldsExcelExporter.export(
-          @records_for_subforms_test, @user_en, form_unique_ids: %w[cases_test_form_5]
+          @records_for_subforms_test, nil, { user: @user_en }, { form_unique_ids: %w[cases_test_form_5] }
         )
         Roo::Spreadsheet.open(StringIO.new(record_data).set_encoding('ASCII-8BIT'), extension: :xlsx)
       end
 
       let(:workbook_field) do
         record_data = Exporters::SelectedFieldsExcelExporter.export(
-          @records_for_subforms_test, @user_en, field_names: %w[field_x]
+          @records_for_subforms_test, nil, { user: @user_en }, { field_names: %w[field_x] }
         )
         Roo::Spreadsheet.open(StringIO.new(record_data).set_encoding('ASCII-8BIT'), extension: :xlsx)
       end
 
       let(:workbook_form_field) do
         record_data = Exporters::SelectedFieldsExcelExporter.export(
-          @records_for_subforms_test, @user_en, form_unique_ids: %w[cases_test_form_5], field_names: %w[field_x]
+          @records_for_subforms_test,
+          nil,
+          { user: @user_en },
+          { form_unique_ids: %w[subform_with_different_name], field_names: %w[field_x] }
         )
         Roo::Spreadsheet.open(StringIO.new(record_data).set_encoding('ASCII-8BIT'), extension: :xlsx)
       end
@@ -329,7 +355,7 @@ xdescribe Exporters::SelectedFieldsExcelExporter do
   context 'Selected fields' do
     let(:workbook) do
       data = Exporters::SelectedFieldsExcelExporter.export(
-        @records, @user_en, field_names: %w[name_first array_field]
+        @records, nil, { user: @user_en }, { field_names: %w[name_first array_field] }
       )
       Roo::Spreadsheet.open(StringIO.new(data).set_encoding('ASCII-8BIT'), extension: :xlsx)
     end
@@ -349,9 +375,13 @@ xdescribe Exporters::SelectedFieldsExcelExporter do
   context 'Selected forms and fields' do
     let(:workbook) do
       data = Exporters::SelectedFieldsExcelExporter.export(
-        @records, @user_en,
-        form_unique_ids: %w[cases_test_form_1 cases_test_form_gbv],
-        field_names: %w[name field_gbv]
+        @records,
+        nil,
+        { user: @user_en },
+        {
+          form_unique_ids: %w[cases_test_form_1 cases_test_form_gbv],
+          field_names: %w[name field_gbv]
+        }
       )
       Roo::Spreadsheet.open(StringIO.new(data).set_encoding('ASCII-8BIT'), extension: :xlsx)
     end
@@ -374,8 +404,10 @@ xdescribe Exporters::SelectedFieldsExcelExporter do
   context 'Selected nested forms and fields' do
     it 'contains a sheet for the selected nested fields' do
       data = Exporters::SelectedFieldsExcelExporter.export(
-        @records, @user_subform,
-        field_names: %w[name field_3 field_4]
+        @records,
+        nil,
+        { user: @user_subform },
+        { field_names: %w[name field_3 field_4] }
       )
       workbook = Roo::Spreadsheet.open(StringIO.new(data).set_encoding('ASCII-8BIT'), extension: :xlsx)
       expect(workbook.sheet(0).row(1)).to eq(%w[ID name field_3 field_4])
@@ -385,13 +417,17 @@ xdescribe Exporters::SelectedFieldsExcelExporter do
 
     it 'contains a sheet for the selected nested fields with their form' do
       data = Exporters::SelectedFieldsExcelExporter.export(
-        @records, @user_subform,
-        form_unique_ids: %w[cases_test_subform_2 cases_test_form_1],
-        field_names: %w[field_3 name]
+        @records,
+        nil,
+        { user: @user_subform },
+        {
+          form_unique_ids: %w[cases_test_subform_2 cases_test_form_1],
+          field_names: %w[field_3 name]
+        }
       )
       workbook = Roo::Spreadsheet.open(StringIO.new(data).set_encoding('ASCII-8BIT'), extension: :xlsx)
-      expect(workbook.sheet(0).row(1)).to eq(%w[ID name])
-      expect(workbook.sheet(1).row(1)).to eq(%w[ID field_3])
+      expect(workbook.sheet(0).row(1)).to eq(%w[ID field_3])
+      expect(workbook.sheet(1).row(1)).to eq(%w[ID name])
     end
   end
 
@@ -399,7 +435,8 @@ xdescribe Exporters::SelectedFieldsExcelExporter do
     it 'hide the name field and does not export the hide_on_view_page fields' do
       data = Exporters::SelectedFieldsExcelExporter.export(
         @records,
-        @user_en,
+        nil,
+        { user: @user_en },
         {
           form_unique_ids: %w[cases_test_form_1]
         }
@@ -414,14 +451,70 @@ xdescribe Exporters::SelectedFieldsExcelExporter do
     let(:workbook) do
       data = Exporters::SelectedFieldsExcelExporter.export(
         @record_with_special_id,
-        @user_en,
-        field_names: %w[name_first]
+        nil,
+        { user: @user_en },
+        { field_names: %w[name_first] }
       )
       Roo::Spreadsheet.open(StringIO.new(data).set_encoding('ASCII-8BIT'), extension: :xlsx)
     end
     it 'render the id' do
       expect(workbook.sheet(0).row(1).first).to eq('ID')
       expect(workbook.sheet(0).row(2).first).to eq(@record_with_special_id[0].short_id)
+    end
+  end
+
+  context 'when the user was referred to a record' do
+    let(:workbook_records) do
+      data = Exporters::SelectedFieldsExcelExporter.export(
+        @records, nil, { user: @user_referral }, { field_names: %w[name_first cases_test_subform_2] }
+      )
+      Roo::Spreadsheet.open(StringIO.new(data), extension: :xlsx)
+    end
+
+    it 'does not export non permitted fields for a referred record' do
+      expect(workbook_records.sheets.size).to eq(3)
+      expect(workbook_records.sheet(1).to_a.map(&:first)).not_to include(@records[1].short_id)
+    end
+
+    it 'exports the permitted fields for a referred record' do
+      expect(workbook_records.sheet(0).row(3)).to eq([@records[1].short_id, 'Jane'])
+    end
+
+    it 'exports all form and subform sheets for the user role' do
+      expect(workbook_records.sheets.size).to eq(3)
+      expect(workbook_records.sheets).to eq(['Selected Fields', 'cases_test_form-cases_test_s...', '__record__'])
+    end
+
+    context 'when is a single record is exported' do
+      let(:workbook_referred_record) do
+        data = Exporters::SelectedFieldsExcelExporter.export(
+          [@records[1]], nil, { user: @user_referral, single_record_export: true },
+          { field_names: %w[name_first cases_test_subform_2] }
+        )
+        Roo::Spreadsheet.open(StringIO.new(data), extension: :xlsx)
+      end
+
+      it 'exports only the permitted forms the authorized role' do
+        expect(workbook_referred_record.sheets.size).to eq(2)
+        expect(workbook_referred_record.sheets).to match_array(
+          ['Selected Fields', '__record__']
+        )
+      end
+
+      it 'exports the permitted fields for a referred record' do
+        expect(workbook_referred_record.sheet(0).last_row).to eq(2)
+        expect(workbook_referred_record.sheet(0).row(1)).to eq(%w[ID name_first])
+        expect(workbook_referred_record.sheet(0).row(2)).to eq(
+          [@records[1].short_id, 'Jane']
+        )
+      end
+    end
+
+    after do
+      clean_data(
+        Alert, User, Agency, Role, UserGroup, PrimeroModule, PrimeroProgram,
+        Field, FormSection, Child, Referral
+      )
     end
   end
 end

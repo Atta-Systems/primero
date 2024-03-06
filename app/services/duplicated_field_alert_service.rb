@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 # Handle alerts for duplicated fields
 class DuplicatedFieldAlertService
   class << self
@@ -19,6 +21,7 @@ class DuplicatedFieldAlertService
       duplicate_records(record, field_name).exists?
     end
 
+    # TODO: Use left join to improve query
     def duplicate_alert(record, field_name)
       Alert.includes(:record)
            .where(alert_for: DuplicateIdAlertable::DUPLICATE_FIELD, type: field_name, record_type: record.class.name)
@@ -30,10 +33,10 @@ class DuplicatedFieldAlertService
         if DuplicatedFieldAlertService.duplicates_field?(record, field_name)
           Alert.create!(
             alert_for: DuplicateIdAlertable::DUPLICATE_FIELD, date: Date.today, type: field_name,
-            form_sidebar_id: form_name, record: record
+            form_sidebar_id: form_name, record:
           )
         else
-          Alert.find_by(alert_for: DuplicateIdAlertable::DUPLICATE_FIELD, type: field_name, record: record)&.destroy!
+          Alert.find_by(alert_for: DuplicateIdAlertable::DUPLICATE_FIELD, type: field_name, record:)&.destroy!
         end
       end
     end

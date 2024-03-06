@@ -1,3 +1,5 @@
+// Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 import actions from "./actions";
 
 describe("<UsersForm /> - Actions", () => {
@@ -6,6 +8,7 @@ describe("<UsersForm /> - Actions", () => {
 
     expect(clonedActions).to.be.an("object");
     [
+      "CLEAR_RECORDS_UPDATE",
       "CLEAR_SELECTED_USER",
       "FETCH_USER",
       "FETCH_USER_FAILURE",
@@ -22,6 +25,7 @@ describe("<UsersForm /> - Actions", () => {
       "PASSWORD_RESET_REQUEST_FINISHED",
       "PASSWORD_RESET_REQUEST_STARTED",
       "PASSWORD_RESET_REQUEST_SUCCESS",
+      "RECORDS_UPDATE",
       "SAVE_USER",
       "SAVE_USER_FAILURE",
       "SAVE_USER_FINISHED",

@@ -1,3 +1,5 @@
+// Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 import { memo, useCallback } from "react";
 import PropTypes from "prop-types";
 import { useDispatch } from "react-redux";
@@ -45,7 +47,7 @@ const Component = ({ index, mode, tab, formMethods, limitedProductionSite }) => 
   const onEnglishTextChange = useCallback(event => {
     const { name, value } = event.target;
 
-    setValue(`translations.${name}`, value, { shouldDirty: true });
+    setValue(name, value, { shouldDirty: true });
   }, []);
 
   const onUpdateTranslation = data => {
@@ -56,7 +58,6 @@ const Component = ({ index, mode, tab, formMethods, limitedProductionSite }) => 
 
       const value = get(data, path);
 
-      setValue(`translations.${path}`, value, { shouldDirty: true });
       setValue(path, value, { shouldDirty: true });
     });
   };
@@ -70,7 +71,7 @@ const Component = ({ index, mode, tab, formMethods, limitedProductionSite }) => 
 
   return (
     <TabPanel tab={tab} index={index}>
-      <div className={css.tabContent}>
+      <div className={css.tabContent} data-testid="settings-tab">
         <SettingsForm
           formMethods={formMethods}
           formMode={formMode}

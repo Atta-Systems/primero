@@ -1,3 +1,5 @@
+// Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 import { METHODS, RECORD_PATH, SAVE_METHODS } from "../../../../config";
 import { ENQUEUE_SNACKBAR, generate, SNACKBAR_VARIANTS } from "../../../notifier";
 import { CLEAR_DIALOG } from "../../../action-dialog";
@@ -38,7 +40,7 @@ export const newPasswordResetRequest = email => ({
   }
 });
 
-export const saveUser = ({ id, body, saveMethod, message }) => {
+export const saveUser = ({ id, body, saveMethod, message, recordsUpdate }) => {
   const path = saveMethod === SAVE_METHODS.update ? `${RECORD_PATH.users}/${id}` : RECORD_PATH.users;
   const passwordResetRequestCallback =
     body.password_setting === PASSWORD_USER_OPTION && saveMethod === SAVE_METHODS.new
@@ -67,6 +69,10 @@ export const saveUser = ({ id, body, saveMethod, message }) => {
         {
           action: CLEAR_DIALOG
         },
+        {
+          action: actions.RECORDS_UPDATE,
+          payload: Boolean(recordsUpdate)
+        },
         ...passwordResetRequestCallback
       ]
     }
@@ -76,6 +82,12 @@ export const saveUser = ({ id, body, saveMethod, message }) => {
 export const clearSelectedUser = () => {
   return {
     type: actions.CLEAR_SELECTED_USER
+  };
+};
+
+export const clearRecordsUpdate = () => {
+  return {
+    type: actions.CLEAR_RECORDS_UPDATE
   };
 };
 

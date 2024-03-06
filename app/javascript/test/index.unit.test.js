@@ -1,3 +1,5 @@
+// Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 import * as moduleToTest from "./index";
 
 describe("app/javascript/test/index", () => {
@@ -21,13 +23,13 @@ describe("app/javascript/test/index", () => {
     "useFakeTimers",
     "mock",
     "createSimpleMount",
-    "createMockStore",
     "createMiddleware",
     "listHeaders",
     "lookups",
     "translateOptions",
     "setupHook",
-    "FormikValueFromHook"
+    "FormikValueFromHook",
+    "createMockStore"
   ].forEach(property => {
     it(`exports property '${property}'`, () => {
       expect(clone).to.have.property(property);

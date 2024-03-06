@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 # Model for MRM Violation
 class Violation < ApplicationRecord
   # TODO: For now this will be used to only read and index violations.
@@ -15,8 +17,8 @@ class Violation < ApplicationRecord
   has_and_belongs_to_many :individual_victims
   has_and_belongs_to_many :group_victims
   has_and_belongs_to_many :perpetrators
+  has_and_belongs_to_many :sources
   has_many :responses, dependent: :destroy, inverse_of: :violation
-  belongs_to :source, optional: true
   belongs_to :incident
 
   store_accessor :data,
@@ -34,7 +36,7 @@ class Violation < ApplicationRecord
 
   def associations_as_data
     @associations_as_data ||= {
-      'sources' => [source&.associations_as_data],
+      'sources' => sources.map(&:associations_as_data),
       'perpetrators' => perpetrators.map(&:associations_as_data),
       'individual_victims' => individual_victims.map(&:associations_as_data),
       'group_victims' => group_victims.map(&:associations_as_data),

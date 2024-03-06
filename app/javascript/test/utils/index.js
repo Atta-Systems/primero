@@ -1,15 +1,14 @@
+// Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 /* eslint-disable react/display-name, react/no-multi-comp, react/prop-types */
-import { routerMiddleware } from "connected-react-router/immutable";
 import { Form, Formik, useFormikContext } from "formik";
-import { createMemoryHistory } from "history";
 import isFunction from "lodash/isFunction";
 import isEmpty from "lodash/isEmpty";
 import { SnackbarProvider } from "notistack";
 import { useEffect } from "react";
 import { Provider } from "react-redux";
 import { MemoryRouter, Route, Router } from "react-router-dom";
-import configureStore from "redux-mock-store";
-import thunk from "redux-thunk";
+
 import DateFnsUtils from "@date-io/date-fns";
 import { createMount } from "@material-ui/core/test-utils";
 import { MuiPickersUtilsProvider } from "@material-ui/pickers";
@@ -25,13 +24,9 @@ import I18nProvider from "../../components/i18n";
 import { RECORD_PATH } from "../../config";
 import { whichFormMode } from "../../components/form";
 import { ListHeaderRecord } from "../../components/user/records";
+import { DEFAULT_STATE, createMockStore } from "../../test-utils";
 
-const DEFAULT_STATE = fromJS({
-  connectivity: {
-    online: true,
-    serverOnline: true
-  }
-});
+
 
 const setupFormFieldRecord = (FieldRecord, field = {}) => {
   return FieldRecord({
@@ -64,14 +59,6 @@ const setupFormInputProps = (field = {}, props = {}, mode, errors = []) => {
     },
     ...props
   };
-};
-
-export const createMockStore = (defaultState = fromJS({}), initialState) => {
-  const history = createMemoryHistory();
-  const mockStore = configureStore([routerMiddleware(history), thunk]);
-  const store = mockStore(defaultState.merge(fromJS(initialState)));
-
-  return { store, history };
 };
 
 export const FormikValueFromHook = (props) => {

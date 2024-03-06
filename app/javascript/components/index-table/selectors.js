@@ -1,3 +1,5 @@
+// Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 import { fromJS, Map } from "immutable";
 
 import { selectNetworkStatus } from "../connectivity/selectors";
@@ -8,19 +10,9 @@ const getNamespacePath = namespace => ["records"].concat(namespace);
 export const getRecords = (state, namespace, isComplete = false) => {
   const records = state.getIn(getNamespacePath(namespace), Map({}));
   const isOnline = selectNetworkStatus(state);
-  const filters = records.get("filters", fromJS({}));
 
   if (isComplete && !isOnline) {
     return fromJS({ data: records.get("data").filter(record => record.get("complete"), false) });
-  }
-
-  if (!isOnline) {
-    const sortedRecords = records.get("data", fromJS([])).sortBy(record => record.get(filters.get("order_by")));
-
-    return fromJS({
-      data: filters.get("order", "asc") === "asc" ? sortedRecords : sortedRecords.reverse(),
-      metadata: records.get("metadata", fromJS({}))
-    });
   }
 
   return records?.filter(keyIn("data", "metadata"));

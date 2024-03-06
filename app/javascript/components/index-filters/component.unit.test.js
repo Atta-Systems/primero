@@ -1,3 +1,5 @@
+// Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 import { fromJS } from "immutable";
 
 import { setupMountedComponent } from "../../test";
@@ -77,7 +79,7 @@ describe("<IndexFitlers>", () => {
     );
     const propsIndexFilters = component.find(IndexFilters).props();
 
-    ["defaultFilters", "metadata", "recordType", "setSelectedRecords"].forEach(property => {
+    ["metadata", "recordType", "setSelectedRecords"].forEach(property => {
       expect(propsIndexFilters).to.have.property(property);
       delete propsIndexFilters[property];
     });

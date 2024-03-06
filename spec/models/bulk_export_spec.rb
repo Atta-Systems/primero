@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
+# Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 require 'rails_helper'
 require 'sunspot'
 require 'roo'
 
 describe BulkExport, search: true do
   before :each do
-    clean_data(BulkExport, Agency, Location, UserGroup, Role, User, Field,
+    clean_data(BulkExport, Location, UserGroup, User, Agency, Role, Field,
                FormSection, Child, PrimeroModule, PrimeroProgram, SystemSettings,
                FormPermission)
 
@@ -24,7 +26,7 @@ describe BulkExport, search: true do
     )
     primero_module = create(:primero_module)
     role = create(:role, form_sections: [@form_section], modules: [primero_module])
-    @user = create(:user, role: role)
+    @user = create(:user, role:)
   end
 
   describe 'custom bulk export' do
@@ -50,7 +52,7 @@ describe BulkExport, search: true do
   end
 
   after :each do
-    clean_data(BulkExport, Agency, Location, UserGroup, Role, User, Field,
+    clean_data(BulkExport, Location, UserGroup, User, Agency, Role, Field,
                FormSection, Child, PrimeroModule, PrimeroProgram, SystemSettings,
                FormPermission)
   end

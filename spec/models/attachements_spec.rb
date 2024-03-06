@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 require 'rails_helper'
 
 describe Attachment, search: true do
@@ -132,6 +134,6 @@ describe Attachment, search: true do
   end
 
   after(:each) do
-    clean_data(Attachment, Child, User)
+    clean_data(Child, Attachment, User)
   end
 end

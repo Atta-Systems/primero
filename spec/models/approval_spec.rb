@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
+# Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 require 'rails_helper'
 
 describe Approval do
   before :each do
-    clean_data(SystemSettings, Role, Agency, User, Child, Alert, PrimeroProgram, PrimeroModule, FormSection)
+    clean_data(SystemSettings, User, Role, Agency, Incident, Child, Alert, PrimeroModule, PrimeroProgram, FormSection)
     SystemSettings.create!(
       approval_forms_to_alert: {
         cp_bia_form: 'assessment',
@@ -48,7 +50,7 @@ describe Approval do
       password_confirmation: '123456789abc',
       email: 'test_user@localhost.com',
       agency_id: agency.id,
-      role: role
+      role:
     )
     @user1 = User.create!(
       full_name: 'Test User 1',
@@ -57,7 +59,7 @@ describe Approval do
       password_confirmation: '123456789abc',
       email: 'test_user1@localhost.com',
       agency_id: agency.id,
-      role: role
+      role:
     )
     @case = Child.create(
       name: 'First Case',
@@ -269,8 +271,10 @@ describe Approval do
   describe '.approve!' do
     context 'and record has many alerts' do
       before do
-        Alert.create(type: Approval::ACTION_PLAN, alert_for: 'approval', date: Date.today, record_id: @case.id, record_type: @case.class )
-        Alert.create(type: Approval::GBV_CLOSURE, alert_for: 'approval', date: Date.today, record_id: @case.id, record_type: @case.class )
+        Alert.create(type: Approval::ACTION_PLAN, alert_for: 'approval', date: Date.today, record_id: @case.id,
+                     record_type: @case.class)
+        Alert.create(type: Approval::GBV_CLOSURE, alert_for: 'approval', date: Date.today, record_id: @case.id,
+                     record_type: @case.class)
         @approval = Approval.get!(
           Approval::ACTION_PLAN,
           @case,
@@ -318,6 +322,6 @@ describe Approval do
   end
 
   after :each do
-    clean_data(SystemSettings, Role, Agency, User, Child, Alert, PrimeroProgram, PrimeroModule, FormSection)
+    clean_data(SystemSettings, User, Role, Agency, Incident, Child, Alert, PrimeroModule, PrimeroProgram, FormSection)
   end
 end

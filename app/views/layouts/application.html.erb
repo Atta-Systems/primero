@@ -1,18 +1,19 @@
+<%# Copyright (c) 2014 - 2023 UNICEF. All rights reserved. %>
+
 <!DOCTYPE html>
 <html lang="<%= I18n.locale %>">
 <head>
-  <!-- jss-insertion-point -->
+  <%= csrf_meta_tag %>
+  <%= csp_property_meta_tag %>
   <meta http-equiv="content-type" content="text/html;charset=UTF-8"/>
   <meta name="viewport" content="minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="google" value="notranslate" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <%= csrf_meta_tag %>
-  <%= csp_property_meta_tag %>
-  <title>Primero</title>
+  <title><%= @theme&.site_title || 'Primero' %></title>
   <link rel="manifest" href="/manifest.json">
-  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <link rel="icon" type="image/x-icon" href="<%= @theme&.favicon.present? ? rails_blob_path(@theme&.favicon, only_path: true) : '/favicon.ico' %>" />
   <!-- jss-insertion-point -->
   <%= stylesheet_bundle_tag 'application', skip_pipeline: true, manifest: :application, nonce: true %>
 </head>
@@ -20,8 +21,9 @@
   <div id="root"></div>
   <%= javascript_tag nonce: true do %>
     window.locationManifest = <%= available_locations %>
+    window.useTheme = <%= @theme.present? %>
   <% end %>
-  <script src="/javascripts/i18n.js"></script>
+  <%= javascript_include_tag '/javascripts/i18n.js', nonce: true %>
 
   <% translations_file_names = Rails.configuration.i18n_translations_file.split("\n")%>
   <% I18n.available_locales.each do |locale|%>
@@ -29,7 +31,7 @@
 
     <% next if translation_file.blank? %>
 
-    <script src="/<%= translation_file %>"></script>
+    <%= javascript_include_tag "/#{translation_file}", nonce: true %>
   <% end %>
   <%= javascript_bundles_with_chunks_tag 'application', skip_pipeline: true, manifest: :application, nonce: true %>
 </body>

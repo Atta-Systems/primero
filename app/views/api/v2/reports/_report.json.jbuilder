@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 fields = ReportFieldService.horizontal_fields(report) + ReportFieldService.vertical_fields(report)
 
 report_hash = FieldI18nService.fill_keys(
@@ -23,4 +25,4 @@ report_hash = FieldI18nService.fill_keys(
 )
 
 json.merge!(report_hash)
-json.merge!({ report_data: report.values_as_json_hash }) if report.values.present?
+json.merge!({ report_data: report.data }) if report.data.present?

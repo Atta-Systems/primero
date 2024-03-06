@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
+# Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 require 'rails_helper'
 
 describe RecordScopeService do
   before do
-    clean_data(PrimeroProgram, PrimeroModule, Role, Agency, UserGroup, User, Child)
+    clean_data(User, Role, PrimeroModule, PrimeroProgram, Agency, UserGroup, Child)
 
     @program = PrimeroProgram.create!(unique_id: 'primeroprogram-primero', name: 'Primero',
                                       description: 'Default Primero Program')

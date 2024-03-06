@@ -1,3 +1,5 @@
+// Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { Grid } from "@material-ui/core";
@@ -62,10 +64,10 @@ const Component = ({ mode, formMethods }) => {
 
       return (
         <WatchedFormSectionField
-          key={`translations.${fieldName}.${localeId}`}
+          key={`${fieldName}.${localeId}`}
           field={FieldRecord({
             display_name: "",
-            name: `translations.${fieldName}.${localeId}`,
+            name: `${fieldName}.${localeId}`,
             type: TEXT_FIELD,
             watchedInputs: "selected_locale_id",
             showIf,
@@ -128,7 +130,7 @@ const Component = ({ mode, formMethods }) => {
           <FormSectionField
             field={FieldRecord({
               display_name: "",
-              name: "translations.name.en",
+              name: "name.en",
               type: TEXT_FIELD,
               onBlur,
               disabled: limitedProductionSite
@@ -149,7 +151,7 @@ const Component = ({ mode, formMethods }) => {
           <FormSectionField
             field={FieldRecord({
               display_name: "",
-              name: "translations.description.en",
+              name: "description.en",
               type: TEXT_FIELD,
               onBlur,
               disabled: limitedProductionSite

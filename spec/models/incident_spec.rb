@@ -1,13 +1,15 @@
 # frozen_string_literal: true
 
+# Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 require 'rails_helper'
 require 'will_paginate'
 
 describe Incident do
   before do
     clean_data(
-      Agency, User, Child, PrimeroProgram, UserGroup, PrimeroModule, FormSection, Field,
-      Incident, Violation, Response, IndividualVictim, Source, Perpetrator, GroupVictim
+      User, Agency, Role, Incident, Child, PrimeroModule, PrimeroProgram, UserGroup, FormSection, Field,
+      Violation, Response, IndividualVictim, Source, Perpetrator, GroupVictim
     )
 
     create(:agency)
@@ -708,6 +710,29 @@ describe Incident do
       )
     end
 
+    it 'adding new source association' do
+      data_to_update = {
+        'sources' => [
+          {
+            'id_number' => '1',
+            'violations_ids' => ['8dccaf74-e9aa-452a-9b58-dc365b1062a2'],
+            "source_interview_date": '2023-02-01',
+            "source_category": 'secondary',
+            "source_type": 'photograph',
+            "unique_id": 'ba604357-5dce-4861-b740-af5d40398ef7'
+          }
+        ]
+      }
+      incident.update_properties(fake_user, data_to_update)
+      incident.save!
+      source_result = incident.associations_as_data('user')['sources']
+
+      expect(source_result.count).to eq(2)
+      expect(source_result.map { |source| source['unique_id'] }).to match_array(
+        %w[ba604357-5dce-4861-b740-af5d40398ef7 7742b9db-2db2-4421-bff7-9aae6272fc4a]
+      )
+    end
+
     it 'updating a violation association' do
       data_to_update = {
         'individual_victims' => [
@@ -769,6 +794,30 @@ describe Incident do
     end
   end
 
+  describe '#can_be_assigned?' do
+    let(:child) do
+      Child.create!(
+        data: {
+          short_id: 'abc123', name: 'Test1', hidden_name: true, age: 5, sex: 'male', owned_by: 'user1'
+        }
+      )
+    end
+    let(:incident) do
+      Incident.create!(
+        unique_id: '1a2b3c', incident_code: '987654', description: 'this is a test', incident_case_id: child.id
+      )
+    end
+
+    it 'when incident_case_id is present?' do
+      expect(incident.can_be_assigned?).to be false
+    end
+
+    it 'when incident_case_id is blank?' do
+      incident.update(incident_case_id: nil)
+      expect(incident.can_be_assigned?).to be true
+    end
+  end
+
   private
 
   def create_incident_with_created_by(created_by, options = {})
@@ -778,8 +827,8 @@ describe Incident do
 
   after do
     clean_data(
-      Agency, User, Child, PrimeroProgram, UserGroup, PrimeroModule, FormSection, Field,
-      Incident, Violation, Response, IndividualVictim, Source, Perpetrator, GroupVictim
+      User, Agency, Role, Incident, Child, PrimeroModule, PrimeroProgram, UserGroup, FormSection, Field,
+      Violation, Response, IndividualVictim, Source, Perpetrator, GroupVictim
     )
   end
 end

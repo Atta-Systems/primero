@@ -1,11 +1,13 @@
 # frozen_string_literal: true
 
+# Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 require 'rails_helper'
 require 'sunspot'
 
 describe PotentialMatch do
   before do
-    clean_data(Child, TracingRequest, Trace)
+    clean_data(Trace, TracingRequest, Child)
   end
 
   let(:tracing_request) do
@@ -69,7 +71,7 @@ describe PotentialMatch do
   let(:potential_match) do
     PotentialMatch.new(
       child: case1,
-      trace: trace
+      trace:
     )
   end
 

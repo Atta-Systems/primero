@@ -1,15 +1,17 @@
 # frozen_string_literal: true
 
+# Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 require 'rails_helper'
 
 describe User do
   before :all do
-    clean_data(Location, AuditLog, Agency, Role, PrimeroProgram, PrimeroModule, Field, FormSection, UserGroup, User)
+    clean_data(Alert, Location, AuditLog, User, Agency, Role, PrimeroModule, PrimeroProgram, Field, FormSection, UserGroup)
   end
 
   def build_user(options = {})
     user_name = "user_name_#{rand(10_000)}"
-    options.reverse_merge!(user_name: user_name, full_name: 'full name', password: 'b00h00h00',
+    options.reverse_merge!(user_name:, full_name: 'full name', password: 'b00h00h00',
                            password_confirmation: options[:password] || 'b00h00h00', email: "#{user_name}@ddress.net",
                            agency_id: options[:agency_id] || Agency.try(:last).try(:id), disabled: 'false',
                            role_id: options[:role_id] || Role.try(:last).try(:id))
@@ -24,7 +26,7 @@ describe User do
 
   describe 'validations' do
     before do
-      clean_data(AuditLog, Agency, Role, PrimeroProgram, PrimeroModule, FormSection, User, UserGroup)
+      clean_data(AuditLog, User, Agency, Role, PrimeroModule, PrimeroProgram, FormSection, UserGroup)
       create(:agency)
       create(:role)
       primero_program = create(:primero_program)
@@ -116,14 +118,54 @@ describe User do
         end
       end
     end
+
+    describe 'when limit_maximum_users_enabled' do
+      before do
+        clean_data(SystemSettings)
+        SystemSettings.create!(
+          maximum_users: 20,
+          maximum_users_warning: 15
+        )
+        SystemSettings.stub(:current).and_return(SystemSettings.first)
+        user_double = double('User')
+        allow(User).to receive(:enabled).and_return(user_double)
+        allow(user_double).to receive(:count).and_return(20)
+      end
+
+      it 'should validate limit_user_reached on create' do
+        user = build_user(user_name: 'random_user')
+        expect(user).to be_invalid
+
+        expect(user.errors.full_messages[0]).to eq(
+          'You have reached your limit of 20 enabled Users. You must disable one or more Users before creating more.'
+        )
+      end
+
+      it 'should validate limit_user_reached on enabling' do
+        user = build_user(disabled: true)
+        user.save(validate: false)
+
+        user.disabled = false
+        expect(user).to be_invalid
+        expect(user.errors.full_messages[0]).to eq(
+          'You have reached your limit of 20 enabled Users. ' \
+          'You must disable one or more Users before creating or enabling more.'
+        )
+      end
+
+      after do
+        clean_data(SystemSettings)
+      end
+    end
+
     after do
-      clean_data(AuditLog, Agency, Role, PrimeroProgram, PrimeroModule, FormSection, User, UserGroup)
+      clean_data(AuditLog, User, Agency, Role, PrimeroModule, PrimeroProgram, FormSection, UserGroup)
     end
   end
 
   describe 'other validations' do
     before do
-      clean_data(AuditLog, Agency, Role, PrimeroProgram, PrimeroModule, FormSection, User)
+      clean_data(AuditLog, User, Agency, Role, PrimeroModule, PrimeroProgram, FormSection)
       create(:agency)
       create(:role)
       primero_program = create(:primero_program)
@@ -230,10 +272,10 @@ describe User do
       end
 
       after :each do
-        clean_data(IdentityProvider)
+        clean_data(User, IdentityProvider)
       end
       after do
-        clean_data(AuditLog, Agency, Role, PrimeroProgram, PrimeroModule, FormSection, User)
+        clean_data(AuditLog, User, Agency, Role, PrimeroModule, PrimeroProgram, FormSection)
       end
     end
   end
@@ -258,7 +300,7 @@ describe User do
 
     it 'does not generate a random password if a password is provided' do
       password = 'avalidpasswooo00rd'
-      user = build_user(password: password)
+      user = build_user(password:)
       user.save!
 
       expect(user.valid_password?(password)).to be_truthy
@@ -343,7 +385,7 @@ describe User do
 
   describe 'user roles' do
     before do
-      clean_data(Role, User)
+      clean_data(User, Role)
     end
 
     it 'should load roles only once' do
@@ -364,13 +406,13 @@ describe User do
     end
 
     after do
-      clean_data(Role, User)
+      clean_data(User, Role)
     end
   end
 
   describe 'manager' do
     before do
-      clean_data(Agency, Role, User, FormSection, PrimeroModule, PrimeroProgram, UserGroup)
+      clean_data(User, Agency, Role, FormSection, PrimeroModule, PrimeroProgram, UserGroup)
 
       @permission_user_read_write = Permission.new(resource: Permission::USER,
                                                    actions: [Permission::READ, Permission::WRITE, Permission::CREATE])
@@ -419,13 +461,13 @@ describe User do
     end
 
     after do
-      clean_data(Agency, Role, User, FormSection, PrimeroModule, PrimeroProgram, UserGroup)
+      clean_data(User, Agency, Role, FormSection, PrimeroModule, PrimeroProgram, UserGroup)
     end
   end
 
   describe 'permissions' do
     before do
-      clean_data(Agency, Role, User, FormSection, PrimeroModule, PrimeroProgram, UserGroup)
+      clean_data(User, Agency, Role, FormSection, PrimeroModule, PrimeroProgram, UserGroup)
       @permission_list = [Permission.new(resource: Permission::CASE,
                                          actions: [Permission::READ, Permission::SYNC_MOBILE,
                                                    Permission::APPROVE_CASE_PLAN, Permission::APPROVE_ASSESSMENT]),
@@ -455,13 +497,13 @@ describe User do
     end
 
     after do
-      clean_data(Agency, Role, User, FormSection, PrimeroModule, PrimeroProgram, UserGroup)
+      clean_data(User, Agency, Role, FormSection, PrimeroModule, PrimeroProgram, UserGroup)
     end
   end
 
   describe 'group permissions' do
     before do
-      clean_data(Agency, Role, User, FormSection, PrimeroModule, PrimeroProgram, UserGroup)
+      clean_data(User, Agency, Role, FormSection, PrimeroModule, PrimeroProgram, UserGroup)
       @permission_list = [Permission.new(resource: Permission::CASE, actions: [Permission::READ])]
     end
 
@@ -512,7 +554,7 @@ describe User do
     end
 
     after do
-      clean_data(Agency, Role, User, FormSection, PrimeroModule, PrimeroProgram, UserGroup)
+      clean_data(User, Agency, Role, FormSection, PrimeroModule, PrimeroProgram, UserGroup)
     end
   end
 
@@ -528,7 +570,7 @@ describe User do
       end
 
       after do
-        clean_data(Agency, Role, User, FormSection, PrimeroModule, PrimeroProgram, UserGroup)
+        clean_data(User, Agency, Role, FormSection, PrimeroModule, PrimeroProgram, UserGroup)
       end
     end
 
@@ -596,7 +638,7 @@ describe User do
 
   describe 'services' do
     before do
-      clean_data(AuditLog, Agency, Role, PrimeroProgram, PrimeroModule, FormSection, User)
+      clean_data(AuditLog, User, Agency, Role, PrimeroModule, PrimeroProgram, FormSection)
       create(:agency, name: 'unicef', agency_code: 'unicef', services: %w[health_medical_service shelter_service])
       create(:role)
       primero_program = create(:primero_program)
@@ -663,95 +705,7 @@ describe User do
     end
 
     after do
-      clean_data(AuditLog, Agency, Role, PrimeroProgram, PrimeroModule, FormSection, User)
-    end
-  end
-
-  describe 'update user_groups in the cases where the user is assigned', search: true do
-    before do
-      clean_data(PrimeroProgram, PrimeroModule, Role, FormSection, Agency, UserGroup, User, Child)
-      @program = PrimeroProgram.create!(unique_id: 'primeroprogram-primero', name: 'Primero',
-                                        description: 'Default Primero Program')
-      @form_section = FormSection.create!(unique_id: 'test_form', name: 'Test Form',
-                                          fields: [Field.new(name: 'national_id_no', type: 'text_field',
-                                                             display_name: 'National ID No')])
-      @cp = PrimeroModule.create!(unique_id: PrimeroModule::CP, name: 'CP', description: 'Child Protection',
-                                  associated_record_types: %w[case tracing_request incident], primero_program: @program,
-                                  form_sections: [@form_section])
-      @role_admin = Role.create!(name: 'Admin role', unique_id: 'role_admin', group_permission: Permission::ALL,
-                                 form_sections: [@form_section], modules: [@cp],
-                                 permissions: [Permission.new(resource: Permission::CASE,
-                                                              actions: [Permission::MANAGE])])
-      @agency1 = Agency.create!(name: 'Agency 1', agency_code: 'agency1')
-      @agency2 = Agency.create!(name: 'Agency 2', agency_code: 'agency2')
-      @group1 = UserGroup.create!(name: 'group 1')
-      @group2 = UserGroup.create!(name: 'group 2')
-      @associated_user = User.create!(full_name: 'User Test', user_name: 'user_test', password: 'a12345678',
-                                      password_confirmation: 'a12345678', email: 'user_test@localhost.com',
-                                      agency_id: @agency1.id, role: @role_admin, user_groups: [@group1])
-      @current_user = User.create!(full_name: 'Admin User', user_name: 'user_admin', password: 'a12345678',
-                                   password_confirmation: 'a12345678', email: 'user_admin@localhost.com',
-                                   agency_id: @agency1.id, role: @role_admin, user_groups: [@group1])
-      @child1 = Child.new_with_user(@current_user, name: 'Child 1', assigned_user_names: [@associated_user.user_name])
-      @child2 = Child.new_with_user(@current_user, name: 'Child 2', assigned_user_names: [@associated_user.user_name])
-      @child3 = Child.new_with_user(@current_user, name: 'Child 3')
-      [@child1, @child2, @child3].each(&:save!)
-      Sunspot.commit
-    end
-
-    it 'should update the associated_user_groups of the records' do
-      @associated_user.user_groups = [@group2]
-      @associated_user.save!
-      expect(@child1.reload.associated_user_groups).to include(@group1.unique_id, @group2.unique_id)
-      expect(@child2.reload.associated_user_groups).to include(@group1.unique_id, @group2.unique_id)
-      expect(@child3.reload.associated_user_groups).to include(@group1.unique_id)
-    end
-
-    after do
-      clean_data(PrimeroProgram, PrimeroModule, Role, FormSection, Agency, UserGroup, User, Child)
-    end
-  end
-
-  describe 'update agencies in the cases where the user is assigned', search: true do
-    before do
-      clean_data(PrimeroProgram, PrimeroModule, Role, FormSection, Agency, UserGroup, User, Child)
-      @program = PrimeroProgram.create!(unique_id: 'primeroprogram-primero', name: 'Primero',
-                                        description: 'Default Primero Program')
-      @form_section = FormSection.create!(unique_id: 'test_form', name: 'Test Form',
-                                          fields: [Field.new(name: 'national_id_no', type: 'text_field',
-                                                             display_name: 'National ID No')])
-      @cp = PrimeroModule.create!(unique_id: PrimeroModule::CP, name: 'CP', description: 'Child Protection',
-                                  associated_record_types: %w[case tracing_request incident], primero_program: @program,
-                                  form_sections: [@form_section])
-      @role_admin = Role.create!(name: 'Admin role', unique_id: 'role_admin', group_permission: Permission::ALL,
-                                 form_sections: [@form_section], modules: [@cp],
-                                 permissions: [Permission.new(resource: Permission::CASE,
-                                                              actions: [Permission::MANAGE])])
-      @agency1 = Agency.create!(name: 'Agency 1', agency_code: 'agency1')
-      @agency2 = Agency.create!(name: 'Agency 2', agency_code: 'agency2')
-      @associated_user = User.create!(full_name: 'User Test', user_name: 'user_test', password: 'a12345678',
-                                      password_confirmation: 'a12345678', email: 'user_test@localhost.com',
-                                      agency: @agency1, role: @role_admin)
-      @current_user = User.create!(full_name: 'Admin User', user_name: 'user_admin', password: 'a12345678',
-                                   password_confirmation: 'a12345678', email: 'user_admin@localhost.com',
-                                   agency: @agency1, role: @role_admin)
-      @child1 = Child.new_with_user(@current_user, name: 'Child 1', assigned_user_names: [@associated_user.user_name])
-      @child2 = Child.new_with_user(@current_user, name: 'Child 2', assigned_user_names: [@associated_user.user_name])
-      @child3 = Child.new_with_user(@current_user, name: 'Child 3')
-      [@child1, @child2, @child3].each(&:save!)
-      Sunspot.commit
-    end
-
-    it 'should update the associated_user_agencies of the records' do
-      @associated_user.agency = @agency2
-      @associated_user.save!
-      expect(@child1.reload.associated_user_agencies).to include(@agency1.unique_id, @agency2.unique_id)
-      expect(@child2.reload.associated_user_agencies).to include(@agency1.unique_id, @agency2.unique_id)
-      expect(@child3.reload.associated_user_agencies).to include(@agency1.unique_id)
-    end
-
-    after do
-      clean_data(PrimeroProgram, PrimeroModule, Role, FormSection, Agency, UserGroup, User, Child)
+      clean_data(AuditLog, User, Agency, Role, PrimeroModule, PrimeroProgram, FormSection)
     end
   end
 
@@ -819,7 +773,7 @@ describe User do
 
   describe '#user_query_scope' do
     before do
-      clean_data(PrimeroProgram, PrimeroModule, Role, FormSection, Agency, UserGroup, User, Child)
+      clean_data(User, Role, PrimeroModule, PrimeroProgram, FormSection, Agency, UserGroup, Child)
       @program = PrimeroProgram.create!(unique_id: 'primeroprogram-primero', name: 'Primero',
                                         description: 'Default Primero Program')
       @form_section = FormSection.create!(unique_id: 'test_form', name: 'Test Form',
@@ -846,13 +800,13 @@ describe User do
     end
 
     after do
-      clean_data(PrimeroProgram, PrimeroModule, Role, FormSection, Agency, UserGroup, User, Child)
+      clean_data(User, Role, PrimeroModule, PrimeroProgram, FormSection, Agency, UserGroup, Child)
     end
   end
 
   describe '#record_query_scope' do
     before do
-      clean_data(PrimeroProgram, PrimeroModule, Role, FormSection, Agency, UserGroup, User, Child)
+      clean_data(User, Role, PrimeroModule, PrimeroProgram, FormSection, Agency, UserGroup, Child)
       @agency_test = Agency.create!(name: 'Agency test1', agency_code: 'agency_test1')
       @group_test = UserGroup.create!(name: 'group test')
       @role_test = Role.create!(name: 'Admin role1', unique_id: 'role_test1', group_permission: 'group',
@@ -869,13 +823,13 @@ describe User do
     end
 
     after do
-      clean_data(PrimeroProgram, PrimeroModule, Role, FormSection, Agency, UserGroup, User, Child)
+      clean_data(User, Role, PrimeroModule, PrimeroProgram, FormSection, Agency, UserGroup, Child)
     end
   end
 
   describe 'when user groups are updated for a user', search: true do
     before do
-      clean_data(PrimeroProgram, PrimeroModule, Role, FormSection, Agency, UserGroup, User, Child)
+      clean_data(User, Role, PrimeroModule, PrimeroProgram, FormSection, Agency, UserGroup, Child)
       create(:agency)
       create(:role)
       @user1 = build_user
@@ -903,11 +857,207 @@ describe User do
     end
 
     after do
-      clean_data(PrimeroProgram, PrimeroModule, Role, FormSection, Agency, UserGroup, User, Child)
+      clean_data(User, Role, PrimeroModule, PrimeroProgram, FormSection, Agency, UserGroup, Child)
+    end
+  end
+
+  describe 'authorized_referral_roles' do
+    let(:primero_module_cp) do
+      PrimeroModule.create!(
+        primero_program: PrimeroProgram.first,
+        name: 'PrimeroModule',
+        unique_id: PrimeroModule::CP,
+        associated_record_types: ['case'],
+        form_sections: []
+      )
+    end
+    let(:role1) do
+      role1 = Role.new_with_properties(
+        name: 'permission_role_1',
+        unique_id: 'permission_role_1',
+        group_permission: Permission::SELF,
+        modules: [primero_module_cp],
+        permissions: [Permission.new(resource: Permission::CASE, actions: [Permission::MANAGE])]
+      )
+      role1.save!
+      role1
+    end
+
+    let(:role2) do
+      role2 = Role.new_with_properties(
+        name: 'permission_role_2',
+        unique_id: 'permission_role_2',
+        group_permission: Permission::SELF,
+        modules: [primero_module_cp],
+        permissions: [Permission.new(resource: Permission::CASE, actions: [Permission::MANAGE])]
+      )
+      role2.save!
+      role2
+    end
+
+    let(:role3) do
+      role3 = Role.new_with_properties(
+        name: 'permission_role_3',
+        unique_id: 'permission_role_3',
+        group_permission: Permission::SELF,
+        modules: [primero_module_cp],
+        permissions: [
+          Permission.new(
+            resource: Permission::CASE,
+            actions: [
+              Permission::REFERRAL, Permission::RECEIVE_REFERRAL, Permission::MANAGE
+            ]
+          )
+        ]
+      )
+      role3.save!
+      role3
+    end
+
+    let(:role4) do
+      role4 = Role.new(
+        name: 'permission_role_4',
+        group_permission: Permission::SELF,
+        modules: [primero_module_cp]
+      )
+      role4.save(validate: false)
+      role4.unique_id = nil
+      role4.save(validate: false)
+      role4
+    end
+
+    let(:child) do
+      Child.create!(
+        data: {
+          name: 'Test',
+          owned_by: 'user_creator',
+          module_id: PrimeroModule::CP,
+          consent_for_services: true,
+          disclosure_other_orgs: true
+        }
+      )
+    end
+
+    let(:user_referred) do
+      user_referred = build_user(user_name: 'user_referred', role_id: role3.id)
+      user_referred.save(validate: false)
+      user_referred
+    end
+
+    let(:user_creator) do
+      user_creator = build_user(user_name: 'user_creator', role_id: role1.id)
+      user_creator.save(validate: false)
+      user_creator
+    end
+
+    before do
+      clean_data(Alert, Referral, User, Role, PrimeroModule, PrimeroProgram, FormSection, Agency, UserGroup, Child)
+      role1
+      role2
+      role3
+      role4
+      user_creator
+      user_referred
+    end
+
+    context 'when the all the referrals specify an authorized_role' do
+      it 'returns the roles specified in the referrals' do
+        Referral.create!(
+          transitioned_by: 'user_creator',
+          transitioned_to: 'user_referred',
+          record: child,
+          authorized_role_unique_id: role1.unique_id
+        )
+        Referral.create!(
+          transitioned_by: 'user_creator',
+          transitioned_to: 'user_referred',
+          record: child,
+          authorized_role_unique_id: role2.unique_id
+        )
+
+        expect(user_referred.authorized_referral_roles(child).ids).to match_array([role1.id, role2.id])
+      end
+    end
+
+    context 'when one referral does not specify an authorized_role' do
+      it 'returns the roles specified in the referrals including the user role' do
+        Referral.create!(
+          transitioned_by: 'user_creator',
+          transitioned_to: 'user_referred',
+          record: child,
+          authorized_role_unique_id: role1.unique_id
+        )
+        Referral.create!(
+          transitioned_by: 'user_creator',
+          transitioned_to: 'user_referred',
+          record: child
+        )
+
+        expect(user_referred.authorized_referral_roles(child).ids).to match_array([role1.id, role3.id])
+      end
+    end
+
+    after do
+      clean_data(Alert, Referral, User, Role, PrimeroModule, PrimeroProgram, FormSection, Agency, UserGroup, Child)
+    end
+  end
+
+  describe '.by_resource_and_permission' do
+    before do
+      clean_data(User, Role, PrimeroModule, PrimeroProgram, FormSection, Agency, UserGroup, Child)
+      @module_cp = PrimeroModule.new(name: 'CP')
+      @module_cp.save(validate: false)
+
+      permission_case = Permission.new(
+        resource: Permission::CASE,
+        actions: [
+          Permission::READ, Permission::WRITE, Permission::CREATE,
+          Permission::REFERRAL, Permission::RECEIVE_REFERRAL,
+          Permission::ASSIGN, Permission::TRANSFER, Permission::RECEIVE_TRANSFER
+        ]
+      )
+      permission_incident_assign = Permission.new(
+        resource: Permission::INCIDENT, actions: [Permission::ASSIGN]
+      )
+      permission_incident = Permission.new(
+        resource: Permission::INCIDENT,
+        actions: [
+          Permission::READ
+        ]
+      )
+      @role = Role.new(permissions: [permission_case], modules: [@module_cp])
+      @role.save(validate: false)
+      @role_case_incident = Role.new(permissions: [permission_case, permission_incident_assign], modules: [@module_cp])
+      @role_case_incident.save(validate: false)
+      @role_incident = Role.new(permissions: [permission_incident], modules: [@module_cp])
+      @role_incident.save(validate: false)
+      @group1 = UserGroup.create!(name: 'Group1')
+      @user1 = User.new(user_name: 'user1', role: @role_case_incident, user_groups: [@group1])
+      @user1.save(validate: false)
+      @user2 = User.new(user_name: 'user2', role: @role, user_groups: [@group1])
+      @user2.save(validate: false)
+      @user3 = User.new(user_name: 'user3', role: @role_incident, user_groups: [@group1])
+      @user3.save(validate: false)
+      @user4 = User.new(user_name: 'user4', role: @role, user_groups: [@group1])
+      @user4.save(validate: false)
+      @user5 = User.new(user_name: 'user5', role: @role, user_groups: [@group1])
+      @user5.save(validate: false)
+      @user6 = User.new(user_name: 'user6', role: @role_incident, user_groups: [@group1])
+      @user6.save(validate: false)
+    end
+
+    it 'return the query scope of the user' do
+      expect(
+        User.by_resource_and_permission(Permission::CASE, [Permission::ASSIGN]).pluck(:user_name)
+      ).to match_array(%w[user1 user2 user4 user5])
+    end
+
+    after do
+      clean_data(User, Role, PrimeroModule, PrimeroProgram, FormSection, Agency, UserGroup, Child)
     end
   end
 
   after do
-    clean_data(Agency, Role, User, FormSection, Field)
+    clean_data(Alert, User, Agency, Role, FormSection, Field)
   end
 end

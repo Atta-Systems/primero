@@ -1,3 +1,5 @@
+// Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 import uniq from "lodash/uniq";
 
 import containsColumns from "./contains-columns";
@@ -12,19 +14,19 @@ const getLabels = (columns, data, i18n, fields, qtyColumns, qtyRows, { agencies,
   const keys = sortByDate(Object.keys(data));
 
   if (qtyRows >= 2 && qtyColumns > 0) {
-    return keys;
+    return keys.map(key =>
+      getTranslatedKey(key, field, {
+        agencies,
+        i18n,
+        locations
+      })
+    );
   }
 
   if (qtyColumns > 0) {
     keys.forEach(key => {
       if (containsColumns(columns, data[key], i18n)) {
-        currentLabels.push(
-          keys
-            .map(current => {
-              return formattedDate(current, i18n);
-            })
-            .filter(label => label !== totalLabel)
-        );
+        currentLabels.push(keys.map(current => formattedDate(current, i18n)).filter(label => label !== totalLabel));
       } else {
         currentLabels.concat(getLabels(columns, data[key], i18n, fields, qtyColumns, qtyRows, { agencies, locations }));
       }
@@ -33,12 +35,15 @@ const getLabels = (columns, data, i18n, fields, qtyColumns, qtyRows, { agencies,
     currentLabels.push(keys);
   }
 
-  return uniq(currentLabels.flat()).map(key =>
-    getTranslatedKey(key, field, {
+  return uniq(currentLabels.flat()).map(key => {
+    const translation = getTranslatedKey(key, field, {
       agencies,
+      i18n,
       locations
-    })
-  );
+    });
+
+    return translation;
+  });
 };
 
 export default (columns, data, i18n, fields, qtyColumns, qtyRows, { agencies, locations }) =>

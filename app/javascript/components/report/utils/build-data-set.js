@@ -1,3 +1,5 @@
+// Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 import isEmpty from "lodash/isEmpty";
 
 import { REPORT_FIELD_TYPES } from "../../reports-form/constants";
@@ -18,7 +20,7 @@ export default (columns, data, i18n, fields, qtyColumns, qtyRows, { agencies, lo
 
   if (!isEmpty(columns)) {
     sortByDate(columns).forEach((column, index) => {
-      const label = getTranslatedKey(column, field, { agencies, locations });
+      const label = getTranslatedKey(column, field, { agencies, i18n, locations });
 
       dataResults.push({
         label: formattedDate(label, i18n),

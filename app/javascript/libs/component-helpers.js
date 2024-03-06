@@ -1,3 +1,5 @@
+// Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 import { isImmutable, List, Map, Record } from "immutable";
 import { addHours, format, parseISO } from "date-fns";
 import isString from "lodash/isString";
@@ -79,15 +81,15 @@ export const reduceMapToObject = data => {
     return null;
   }
 
-  if (data instanceof List) {
+  if (data instanceof List || List.isList(data)) {
     return data.reduce((acc, curr) => [...acc, reduceMapToObject(curr)], []);
   }
 
-  if (data instanceof Map) {
+  if (data instanceof Map || Map.isMap(data)) {
     return data.entrySeq().reduce((acc, [key, value]) => ({ ...acc, [key]: reduceMapToObject(value) }), {});
   }
 
-  if (data instanceof Record) {
+  if (data instanceof Record || Record.isRecord(data)) {
     return data
       .toSeq()
       .entrySeq()

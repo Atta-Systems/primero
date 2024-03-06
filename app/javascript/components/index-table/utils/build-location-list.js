@@ -1,3 +1,5 @@
+// Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 import { LOOKUPS, STRING_SOURCES_TYPES } from "../../../config";
 
 const buildLocationsList = (records, columnsWithLookups) => {
@@ -11,6 +13,7 @@ const buildLocationsList = (records, columnsWithLookups) => {
   records.forEach(record => {
     locationFields.forEach(locationField => {
       locationIDS.push(record.get(locationField[0]));
+      locationIDS.push(...(record.get("reporting_location_hierarchy")?.split(".") || []));
     });
   });
 

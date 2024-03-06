@@ -1,3 +1,5 @@
+// Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 import PropTypes from "prop-types";
 import { Grid } from "@material-ui/core";
 
@@ -36,7 +38,7 @@ const Component = ({ approvalSubform, isRequest, isResponse }) => {
 
   return (
     <>
-      <Grid container spacing={2}>
+      <Grid container spacing={2} data-testid="container">
         <Grid item md={6} xs={12}>
           <DisplayData label={renderApprovalLabel} value={renderApprovalValue} />
         </Grid>

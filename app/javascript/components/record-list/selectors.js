@@ -1,3 +1,5 @@
+// Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 import { fromJS } from "immutable";
 
 import filtersToQueryString from "./utils/filters-to-query-string";
@@ -23,3 +25,5 @@ export const getAppliedFiltersAsQueryString = (state, namespace) => {
 export const getLoading = (state, namespace) => state.getIn(getNamespacePath(namespace).concat("loading"), false);
 
 export const getErrors = (state, namespace) => state.getIn(getNamespacePath(namespace).concat("errors"), false);
+
+export const getDrawer = state => state.getIn(["ui", "drawers"], fromJS({}));

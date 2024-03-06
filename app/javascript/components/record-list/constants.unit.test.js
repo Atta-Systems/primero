@@ -1,3 +1,5 @@
+// Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 import * as constants from "./constants";
 
 describe("<RecordList /> - constants", () => {
@@ -12,6 +14,7 @@ describe("<RecordList /> - constants", () => {
       "FILTER_CONTAINER_NAME",
       "ID_COLUMNS",
       "NAME",
+      "SEARCH_OR_CREATE_FILTERS",
       "SEARCH_AND_CREATE_WORKFLOW",
       "COMPLETE"
     ].forEach(property => {

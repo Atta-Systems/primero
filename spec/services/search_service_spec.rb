@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 require 'rails_helper'
 
 describe SearchService, search: true do
@@ -224,7 +226,7 @@ describe SearchService, search: true do
   end
 
   after :example do
-    clean_data(Agency, UserGroup, User, Child)
+    clean_data(User, Agency, UserGroup, Child)
   end
 
   describe 'Filter search' do

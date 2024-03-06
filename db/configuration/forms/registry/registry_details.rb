@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 registry_details_fields = [
   Field.new(name: 'registry_id',
             type: 'text_field',
@@ -27,14 +29,6 @@ registry_details_fields = [
             option_strings_source: 'lookup lookup-registry-status',
             editable: false,
             disabled: true),
-  Field.new(name: 'marked_for_mobile',
-            type: 'tick_box',
-            tick_box_label_en: 'Yes',
-            display_name_en: 'Marked for mobile?',
-            editable: false,
-            disabled: true,
-            mobile_visible: false,
-            visible: false),
   Field.new(name: 'registration_date',
             type: 'date_field',
             selected_value: 'today',
@@ -65,10 +59,6 @@ registry_details_fields = [
   Field.new(name: 'address_current',
             type: 'textarea',
             display_name_en: 'Current Address'),
-  Field.new(name: 'landmark_current',
-            type: 'text_field',
-            display_name_en: 'Landmark',
-            visible: false),
   Field.new(name: 'location_current',
             type: 'select_box',
             display_name_en: 'Current Location',

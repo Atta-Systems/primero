@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
+# Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 require 'rails_helper'
 
 describe UserGroup do
   before(:each) do
-    clean_data(Agency, UserGroup, User)
+    clean_data(User, Agency, UserGroup)
 
     @agency1 = Agency.create!(unique_id: 'agency_1', name: 'Agency 1', agency_code: 'agency1')
     @agency2 = Agency.create!(unique_id: 'agency_2', name: 'Agency 2', agency_code: 'agency2')

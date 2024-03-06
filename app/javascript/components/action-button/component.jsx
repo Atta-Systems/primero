@@ -1,3 +1,5 @@
+// Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 import PropTypes from "prop-types";
 import isString from "lodash/isString";
 
@@ -7,7 +9,7 @@ import { useI18n } from "../i18n";
 import { buttonType } from "./utils";
 import { NAME, ACTION_BUTTON_TYPES } from "./constants";
 
-const Component = ({
+function Component({
   id = null,
   icon,
   cancel,
@@ -22,7 +24,7 @@ const Component = ({
   rest,
   disabled,
   ...options
-}) => {
+}) {
   const { disabledApplication } = useApp();
   const i18n = useI18n();
   const ButtonType = buttonType(type);
@@ -49,10 +51,11 @@ const Component = ({
       text={buttonText}
       tooltip={tooltip}
       keepTextOnMobile={keepTextOnMobile}
+      role="button"
       {...options}
     />
   );
-};
+}
 
 Component.displayName = NAME;
 

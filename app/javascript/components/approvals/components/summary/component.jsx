@@ -1,3 +1,5 @@
+// Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 import PropTypes from "prop-types";
 import { Grid } from "@material-ui/core";
 import Chip from "@material-ui/core/Chip";
@@ -41,7 +43,7 @@ const Component = ({ approvalSubform, css, isRequest, isResponse }) => {
   };
 
   return (
-    <Grid container spacing={2} alignItems="center">
+    <Grid container spacing={2} alignItems="center" data-testid="sectionheader">
       <Grid item md={10} xs={8}>
         <div className={css.wrapper}>
           {/* TODO: The date should be localized */}

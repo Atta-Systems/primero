@@ -1,11 +1,9 @@
-import merge from "lodash/merge";
+// Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
 
 export default data => {
-  const translations = { ...data.translations };
   const source = { ...data };
 
-  delete source.translations;
   delete source.selected_locale_id;
 
-  return merge(source, translations);
+  return source;
 };

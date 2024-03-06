@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
+# Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 require 'rails_helper'
 
 describe Filter do
   before :each do
-    clean_data(PrimeroProgram, Field, FormSection, PrimeroModule, Role, Agency, User, UserGroup, SystemSettings)
+    clean_data(User, Agency, Role, PrimeroModule, PrimeroProgram, Field, FormSection, UserGroup, SystemSettings)
     @program = PrimeroProgram.create!(
       unique_id: 'primeroprogram-primero',
       name: 'Primero',
@@ -253,7 +255,8 @@ describe Filter do
         expect(
           @filters_cp_gbv.dig(0, 'cases')
                         .find { |filter| filter.name == 'cases.filter_by.by_date' }
-                        .options[:en]).to eq(filter_by_date_cp)
+                        .options[:en]
+        ).to eq(filter_by_date_cp)
       end
     end
   end
@@ -346,7 +349,7 @@ describe Filter do
   end
 
   after do
-    clean_data(PrimeroProgram, Field, FormSection, PrimeroModule, Role, Agency, User, UserGroup, SystemSettings)
+    clean_data(User, Agency, Role, PrimeroModule, PrimeroProgram, Field, FormSection, UserGroup, SystemSettings)
     @system_settings.save!
     SystemSettings.current(true)
   end

@@ -1,13 +1,15 @@
 # frozen_string_literal: true
 
+# Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 require 'rails_helper'
 
 describe Alertable do
   context 'when a transfer_request alert exists' do
     before do
       clean_data(
-        SystemSettings, Role, Agency, User, Child, Alert, UserGroup,
-        PrimeroProgram, PrimeroModule, Referral, FormSection
+        SystemSettings, Alert, User, Role, Agency, Child, UserGroup,
+        PrimeroModule, PrimeroProgram, Referral, FormSection
       )
       program = PrimeroProgram.create!(
         unique_id: 'primeroprogram-primero',
@@ -60,7 +62,10 @@ describe Alertable do
         permissions: [
           Permission.new(
             resource: Permission::CASE,
-            actions: [Permission::MANAGE, Permission::REFERRAL, Permission::RECEIVE_REFERRAL]
+            actions: [
+              Permission::MANAGE, Permission::REFERRAL, Permission::RECEIVE_REFERRAL,
+              Permission::TRANSFER, Permission::RECEIVE_TRANSFER
+            ]
           )
         ],
         modules: [cp]
@@ -88,7 +93,7 @@ describe Alertable do
         email: 'test_user_2@localhost.com',
         agency_id: agency_a.id,
         user_groups: [@group_a, @group_b],
-        role: role
+        role:
       )
       @user_c = User.create!(
         full_name: 'Test User 3',
@@ -235,10 +240,41 @@ describe Alertable do
       end
     end
 
+    context 'Count alert from transferred cases' do
+      before do
+        Transfer.create!(
+          transitioned_by: 'test_user_2', transitioned_to: 'test_user_4', record: @test_class,
+          type: Transfer.name, consent_overridden: true
+        )
+        child_tranferred = Child.create(name: 'bar', data: { owned_by: @user_c.user_name, module_id: 'primeromodule-cp' })
+        Transfer.create!(
+          transitioned_by: 'test_user_3', transitioned_to: 'test_user_1', record: child_tranferred,
+          type: Transfer.name, consent_overridden: true
+        )
+      end
+
+      it 'count alert from self permissions users that has owned and transferred' do
+        expect(Child.alert_count(@user_a)).to eq(2)
+        expect(Child.alert_count_self(@user_a)).to eq(2)
+      end
+
+      it 'count alert from self permissions users' do
+        expect(Child.alert_count(@user_d)).to eq(1)
+      end
+
+      it 'count alert from user group' do
+        expect(Child.alert_count(@user_c)).to eq(3)
+      end
+
+      it 'count alert from user agency' do
+        expect(Child.alert_count(@user_b)).to eq(3)
+      end
+    end
+
     after do
       clean_data(
-        SystemSettings, Role, Agency, User, Child, Alert, UserGroup,
-        PrimeroProgram, PrimeroModule, Referral, FormSection
+        SystemSettings, Alert, User, Role, Agency, Child, UserGroup,
+        PrimeroModule, PrimeroProgram, Referral, FormSection
       )
     end
   end
@@ -278,7 +314,7 @@ describe Alertable do
   context 'when a incident_from_case alert exists' do
     before do
       clean_data(
-        SystemSettings, Role, Agency, User, Child, Alert, UserGroup,
+        SystemSettings, Alert, User, Role, Agency, Child, UserGroup,
         PrimeroProgram, PrimeroModule, Referral, FormSection
       )
 
@@ -377,8 +413,8 @@ describe Alertable do
 
   after do
     clean_data(
-      SystemSettings, Role, Agency, User, Child, Alert, UserGroup,
-      PrimeroProgram, PrimeroModule, Referral, FormSection
+      SystemSettings, Alert, User, Role, Agency, Child, UserGroup,
+      PrimeroModule, PrimeroProgram, Referral, FormSection
     )
   end
 end

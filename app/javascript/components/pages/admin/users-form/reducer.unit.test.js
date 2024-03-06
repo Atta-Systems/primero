@@ -1,3 +1,5 @@
+// Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
+
 import { fromJS } from "immutable";
 
 import actions from "./actions";
@@ -58,11 +60,35 @@ describe("<UsersForm /> - Reducers", () => {
     const expected = fromJS({
       selectedUser: {},
       errors: false,
-      serverErrors: []
+      serverErrors: [],
+      userSaved: false
     });
     const action = {
       type: actions.CLEAR_SELECTED_USER,
       payload: false
+    };
+    const newState = reducer(fromJS({}), action);
+
+    expect(newState).to.deep.equal(expected);
+  });
+
+  it("should handle CLEAR_RECORDS_UPDATE", () => {
+    const expected = fromJS({});
+    const action = {
+      type: actions.CLEAR_RECORDS_UPDATE
+    };
+    const newState = reducer(fromJS({ recordsUpdate: true }), action);
+
+    expect(newState).to.deep.equal(expected);
+  });
+
+  it("should handle RECORDS_UPDATE", () => {
+    const expected = fromJS({
+      recordsUpdate: true
+    });
+    const action = {
+      type: actions.RECORDS_UPDATE,
+      payload: true
     };
     const newState = reducer(fromJS({}), action);
 
@@ -81,10 +107,20 @@ describe("<UsersForm /> - Reducers", () => {
   });
 
   it("should handle SAVE_USER_SUCCESS", () => {
-    const expected = fromJS({ saving: false });
+    const expected = fromJS({
+      saving: false,
+      metadata: {
+        total_enabled: 50
+      },
+      userSaved: true
+    });
     const action = {
       type: actions.SAVE_USER_SUCCESS,
-      payload: false
+      payload: {
+        metadata: {
+          total_enabled: 50
+        }
+      }
     };
     const newState = reducer(fromJS({}), action);
 

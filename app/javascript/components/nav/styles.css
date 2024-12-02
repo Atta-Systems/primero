@@ -30,7 +30,7 @@
   justify-content: flex-end;
   align-items: center;
   padding: var(--spacing-0-1);
-  background: var(--c-toolbar-background-color-mobile-header, var(--c-light-grey));
+  background: transparent;
 
   & button {
     padding: 6px;
@@ -60,7 +60,7 @@
 }
 
 .drawerPaper-demo {
-  background: repeating-linear-gradient(45deg, var(--c-light-grey), var(--c-light-grey) 10px, var(--c-white) 10px, var(--c-white) 20px);
+  background: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0, .05) 10px, rgba(0,0,0,.05) 20px), var(--c-toolbar-background-color);
 }
 
 .listIcon {
@@ -189,7 +189,7 @@
   }
 }
 
-@media (max-width:959.95px) {
+@media (max-width:900px) {
   .drawerPaper, .drawerPaper-demo {
     box-shadow: none
   }
@@ -201,7 +201,7 @@
   }
 }
 
-@media (min-width:960px) and (max-width:1279.95px) {
+@media (min-width:900px) and (max-width:1200px) {
   .navLink.contained {
     padding: 7px !important;
   }
@@ -240,8 +240,8 @@
   }
 }
 
-@media (max-width:1279.95px),
-  only screen and (pointer: coarse) and (max-width:1279.95px) {
+@media (max-width:1200px),
+  only screen and (pointer: coarse) and (max-width:1200px) {
   .navNetworkIndicator {
     & div {
       margin: 0 7px 0 8px;
@@ -250,12 +250,12 @@
   }
   .navTranslationsToggle {
     & button {
-      padding-left: 8px;
+      padding-left: var(--sp-2);
     }
   }
 }
 
-@media only screen and (pointer: fine) and (max-width:1279.95px) {
+@media only screen and (pointer: fine) and (max-width:1200px) {
   .navNetworkIndicator {
     & div {
       margin: 0 3px 0 5px;
@@ -264,7 +264,7 @@
   }
 }
 
-@media (pointer: fine) and (max-width:1279.95px) {
+@media (pointer: fine) and (max-width:1200px) {
   .navNetworkIndicator {
     & div {
       margin: 0 10px 0 10px;
@@ -273,8 +273,7 @@
   }
   .navTranslationsToggle {
     & button {
-      padding-left: 8px;
+      padding-left: var(--sp-2);
     }
   }
 }
-

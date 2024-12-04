@@ -108,6 +108,57 @@ describe("<RecordForm>/form/validations", () => {
       });
     });
 
+    context("when a subform is required", () => {
+      const i18n = { t: value => value, locale: "en" };
+
+      const subformField = {
+        name: "subform_1",
+        display_name: { en: "Subform 1" },
+        type: SUBFORM_SECTION,
+        required: true,
+        subform_section_id: {
+          fields: [
+            {
+              name: "field_1",
+              display_name: { en: "Field 1" },
+              required: true,
+              type: TEXT_FIELD
+            }
+          ]
+        }
+      };
+
+      const schema = object().shape(validations.fieldValidations(subformField, { i18n, online: true }));
+
+      context("when the required field is present", () => {
+        it("should be valid", () => {
+          const formData = { subform_1: [{ field_1: "Person 1" }] };
+
+          expect(schema.isValidSync(formData)).to.be.true;
+        });
+      });
+
+      context("when the required field is not present", () => {
+        it("should be invalid", () => {
+          const formData = { subform_1: [{}] };
+
+          expect(schema.isValidSync(formData)).to.be.false;
+        });
+
+        it("should be valid if the subform will be destroyed", () => {
+          const formData = { subform_1: [{ _destroy: true }] };
+
+          expect(schema.isValidSync(formData)).to.be.false;
+        });
+
+        it("should be valid if the subform will be destroyed and has other subforms", () => {
+          const formData = { subform_1: [{ _destroy: true }, { field_1: "Person 1" }] };
+
+          expect(schema.isValidSync(formData)).to.be.true;
+        });
+      });
+    });
+
     context("when the field is a multi select", () => {
       context("when it is required", () => {
         const i18n = { t: value => value, locale: "en" };
@@ -120,18 +171,19 @@ describe("<RecordForm>/form/validations", () => {
           required: true
         };
 
-        it("should not be valid if it is empty", () => {
+        it("should not be valid if it is empty array", () => {
           const schema = object().shape(validations.fieldValidations({ ...selectField, required: true }, { i18n }));
           const formData = { cities: [] };
 
           expect(schema.isValidSync(formData)).to.be.false;
         });
 
-        it("should not be valid if it is null", () => {
+        it("should not be valid if it is null or undefined", () => {
           const schema = object().shape(validations.fieldValidations({ ...selectField, required: true }, { i18n }));
-          const formData = { cities: null };
 
-          expect(schema.isValidSync(formData)).to.be.false;
+          expect(schema.isValidSync({ cities: null })).to.be.false;
+          expect(schema.isValidSync({ cities: undefined })).to.be.false;
+          expect(schema.isValidSync({})).to.be.false;
         });
 
         it("should not be valid if it is not present", () => {
@@ -139,6 +191,37 @@ describe("<RecordForm>/form/validations", () => {
           const formData = {};
 
           expect(schema.isValidSync(formData)).to.be.false;
+        });
+
+        describe("select with a display condition", () => {
+          const selectFieldWithDisplayCondition = {
+            name: "cities",
+            display_name: { en: "Cities" },
+            type: SELECT_FIELD,
+            multi_select: true,
+            required: true,
+            display_conditions_record: {
+              eq: { testField: 1 }
+            }
+          };
+
+          it("should not validate", () => {
+            const schema = object().shape(
+              validations.fieldValidations({ ...selectFieldWithDisplayCondition, required: true }, { i18n })
+            );
+            const formData = {};
+
+            expect(schema.isValidSync(formData)).to.be.true;
+          });
+
+          it("should validate", () => {
+            const schema = object().shape(
+              validations.fieldValidations({ ...selectFieldWithDisplayCondition, required: true }, { i18n })
+            );
+            const formData = { testField: 1 };
+
+            expect(schema.isValidSync(formData)).to.be.false;
+          });
         });
       });
 

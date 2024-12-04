@@ -3,12 +3,12 @@
 # Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
 
 require 'rails_helper'
-require 'sunspot'
+require 'sunspot' if Rails.configuration.solr_enabled
 
 describe Child do
-  describe 'quicksearch', search: true do
+  describe 'quicksearch' do
     before do
-      clean_data(Child, Family)
+      clean_data(SearchableIdentifier, Child, Family)
     end
 
     it 'has a searchable case id, survivor number' do
@@ -16,9 +16,9 @@ describe Child do
     end
 
     it 'can find a child by survivor code' do
-      child = Child.create!(data: { name: 'Lonnie', survivor_code_no: 'ABC123XYZ' })
-      child.index!
-      search_result = SearchService.search(Child, query: 'ABC123XYZ').results
+      Child.create!(data: { name: 'Lonnie', survivor_code_no: 'ABC123XYZ' })
+
+      search_result = PhoneticSearchService.search(Child, query: 'ABC123XYZ').records
       expect(search_result).to have(1).child
       expect(search_result.first.survivor_code_no).to eq('ABC123XYZ')
     end
@@ -27,21 +27,26 @@ describe Child do
       family = Family.create!(
         family_number: '4225',
         family_members: [
-          { unique_id: '123', relation_name: 'Family Name',relation_age: 5, relation_sex: "male" }
+          { unique_id: '123', relation_name: 'Family Name', relation_age: 5, relation_sex: 'male' }
         ]
       )
+
       child = Child.create!(data: { name: 'Lonnie', survivor_code_no: 'ABC123XYZ' })
       child.family = family
       child.save!
-      child.index!
 
-      search_result = SearchService.search(Child, query: '4225').results
+      filter = SearchFilters::TextValue.new(field_name: 'family_number', value: '4225')
+      search_result = PhoneticSearchService.search(Child, filters: [filter]).records
       expect(search_result).to have(1).child
       expect(search_result.first.family_number).to eq('4225')
     end
   end
 
   describe 'update_properties' do
+    before do
+      clean_data(SearchableIdentifier, Child)
+    end
+
     it 'should replace old properties with updated ones' do
       child = Child.new(data: { 'name' => 'Dave', 'age' => 28, 'last_known_location' => 'London' })
       new_properties = { 'name' => 'Dave', 'age' => 35 }
@@ -74,6 +79,7 @@ describe Child do
       let(:uuid) { SecureRandom.uuid }
 
       before do
+        clean_data(SearchableIdentifier, Child)
         data = case1.data.clone
         data['incident_details'] = [
           { 'unique_id' => incident1.id, 'description' => 'incident1 - modified' },
@@ -114,7 +120,7 @@ describe Child do
 
   describe 'registry_record' do
     before do
-      clean_data(Child, RegistryRecord)
+      clean_data(SearchableIdentifier, Child, RegistryRecord)
     end
 
     let(:registry_record1) { RegistryRecord.create!(registry_type: 'farmer') }
@@ -128,13 +134,13 @@ describe Child do
     end
 
     after do
-      clean_data(Child, RegistryRecord)
+      clean_data(SearchableIdentifier, Child, RegistryRecord)
     end
   end
 
   describe 'family record' do
     before do
-      clean_data(Child, Family)
+      clean_data(SearchableIdentifier, Child, Family)
     end
 
     let(:family1) do
@@ -441,7 +447,8 @@ describe Child do
 
   describe 'record ownership' do
     before do
-      clean_data(User, Agency, Incident, Child, Role, PrimeroModule, PrimeroProgram, UserGroup, FormSection)
+      clean_data(SearchableIdentifier, User, Agency, Incident, Child, Role, PrimeroModule, PrimeroProgram, UserGroup,
+                 FormSection)
 
       @owner = create :user
       @previous_owner = create :user
@@ -456,13 +463,15 @@ describe Child do
     end
 
     after do
-      clean_data(User, Agency, Incident, Child, Role, PrimeroModule, PrimeroProgram, UserGroup, FormSection)
+      clean_data(SearchableIdentifier, User, Agency, Incident, Child, Role, PrimeroModule, PrimeroProgram, UserGroup,
+                 FormSection)
     end
   end
 
   describe 'case id code' do
     before do
-      clean_data(User, Location, Role, Agency, PrimeroModule, PrimeroProgram, UserGroup, SystemSettings)
+      clean_data(SearchableIdentifier, User, Location, Role, Agency, PrimeroModule, PrimeroProgram, UserGroup,
+                 SystemSettings)
 
       @permission_case ||= Permission.new(
         resource: Permission::CASE,
@@ -622,13 +631,14 @@ describe Child do
     end
 
     after do
-      clean_data(User, Location, Role, Agency, PrimeroModule, PrimeroProgram, UserGroup, SystemSettings)
+      clean_data(SearchableIdentifier, User, Location, Role, Agency, PrimeroModule, PrimeroProgram, UserGroup,
+                 SystemSettings)
     end
   end
 
   describe 'syncing of protection concerns' do
     before do
-      clean_data(Child)
+      clean_data(SearchableIdentifier, Child)
       User.stub(:find_by_user_name).and_return(double(organization: double(unique_id: 'UNICEF')))
       @protection_concerns = %w[Separated Unaccompanied]
     end
@@ -665,13 +675,13 @@ describe Child do
     end
 
     after do
-      clean_data(Child)
+      clean_data(SearchableIdentifier, Child)
     end
   end
 
   describe '.match_criteria' do
     before do
-      clean_data(Child)
+      clean_data(SearchableIdentifier, Child)
     end
 
     let(:case1) do
@@ -729,13 +739,13 @@ describe Child do
     end
 
     after do
-      clean_data(Child)
+      clean_data(SearchableIdentifier, Child)
     end
   end
 
   context 'testing service_implemented field' do
     before do
-      clean_data(Child)
+      clean_data(SearchableIdentifier, Child)
     end
 
     it 'not_implemented in service_implemented field' do
@@ -764,13 +774,13 @@ describe Child do
     end
 
     after do
-      clean_data(Child)
+      clean_data(SearchableIdentifier, Child)
     end
   end
 
   describe 'current care arrangements' do
     before do
-      clean_data(Child)
+      clean_data(SearchableIdentifier, Child)
     end
 
     context 'when all care arrangements have a start date' do
@@ -913,7 +923,7 @@ describe Child do
       end
 
       after :each do
-        clean_data(Child)
+        clean_data(SearchableIdentifier, Child)
       end
 
       let(:most_recent_care_arrangement) { case1.most_recent_care_arrangement }
@@ -979,7 +989,7 @@ describe Child do
       end
 
       after :each do
-        clean_data(Child)
+        clean_data(SearchableIdentifier, Child)
       end
 
       let(:most_recent_care_arrangement) { case1.most_recent_care_arrangement }
@@ -1007,37 +1017,51 @@ describe Child do
       end
     end
     after do
-      clean_data(Child)
+      clean_data(SearchableIdentifier, Child)
     end
   end
 
   describe 'urgent_protection_concern', search: true do
     it 'finds cases where the value is stored as string true' do
       child = Child.create!(data: { name: 'Lonnie', urgent_protection_concern: 'true' })
-      child.index!
-      search_result = SearchService.search(
+      search_result = PhoneticSearchService.search(
         Child,
-        filters: [SearchFilters::Value.new(field_name: 'urgent_protection_concern', value: true)]
-      ).results
+        filters: [SearchFilters::BooleanValue.new(field_name: 'urgent_protection_concern', value: true)]
+      ).records
       expect(search_result).to have(1).child
       expect(search_result.first.id).to eq(child.id)
     end
 
     it 'finds cases where the value is stored as string false' do
       child = Child.create!(data: { name: 'Lonnie', urgent_protection_concern: 'false' })
-      child.index!
-      search_result = SearchService.search(
+      search_result = PhoneticSearchService.search(
         Child,
-        filters: [SearchFilters::Value.new(field_name: 'urgent_protection_concern', value: false)]
-      ).results
+        filters: [SearchFilters::BooleanValue.new(field_name: 'urgent_protection_concern', value: false)]
+      ).records
       expect(search_result).to have(1).child
       expect(search_result.first.id).to eq(child.id)
+    end
+
+    context 'when fields store values string or boolean' do
+      let!(:record1) { Child.create!(data: { name: 'Foo', urgent_protection_concern: 'true' }) }
+      let!(:record2) { Child.create!(data: { name: 'Bar', urgent_protection_concern: true }) }
+      let!(:record3) { Child.create!(data: { name: 'Random', age: 2 }) }
+
+      it 'finds cases where the value is stored as string or boolean' do
+        search_result = PhoneticSearchService.search(
+          Child,
+          filters: [SearchFilters::BooleanValue.new(field_name: 'urgent_protection_concern', value: true)]
+        ).records
+
+        expect(search_result).to have(2).child
+        expect(search_result.map(&:id)).to match_array([record1.id, record2.id])
+      end
     end
   end
 
   describe 'calculate_has_case_plan' do
     before do
-      clean_data(Child)
+      clean_data(SearchableIdentifier, Child)
     end
 
     let(:child1) do
@@ -1080,13 +1104,13 @@ describe Child do
     end
 
     after do
-      clean_data(Child)
+      clean_data(SearchableIdentifier, Child)
     end
   end
 
   describe 'family_members' do
     before do
-      clean_data(Child)
+      clean_data(SearchableIdentifier, Child)
     end
 
     let(:member_unique_id1) { SecureRandom.uuid }
@@ -1123,12 +1147,61 @@ describe Child do
     end
 
     after do
-      clean_data(Child)
+      clean_data(SearchableIdentifier, Child)
+    end
+  end
+
+  describe 'phonetic tokens' do
+    before do
+      clean_data(SearchableIdentifier, Child)
+    end
+
+    it 'generates the phonetic tokens' do
+      child = Child.create!(data: { name: 'George', name_nickname: 'Wolf', name_other: 'Joe' })
+      expect(child.tokens).to eq(%w[JRJ ALF J])
+    end
+  end
+
+  describe 'reunification_dates' do
+    before do
+      clean_data(SearchableIdentifier, Child)
+    end
+
+    it 'stores the reunification_dates' do
+      child = Child.create!(
+        data: {
+          age: 2, sex: 'male', name: 'Random Name', reunification_details_section: [
+            { 'unique_id' => '4b7c1011-a63e-422c-b6fb-a64cdcc2d472', 'date_reunification' => '2021-12-08' },
+            { 'unique_id' => 'f732a61c-cdae-435c-9c0c-55a893321fed', 'date_reunification' => '2022-02-12' }
+          ]
+        }
+      )
+
+      expect(child.reunification_dates).to eq([Date.new(2021, 12, 8), Date.new(2022, 2, 12)])
+    end
+  end
+
+  describe 'tracing_dates' do
+    before do
+      clean_data(SearchableIdentifier, Child)
+    end
+
+    it 'stores the tracing_dates' do
+      child = Child.create!(
+        data: {
+          age: 2, sex: 'male', name: 'Random Name', tracing_actions_section: [
+            { 'unique_id' => '4b7c1011-a63e-422c-b6fb-a64cdcc2d472', 'date_tracing' => '2022-05-09' },
+            { 'unique_id' => 'f732a61c-cdae-435c-9c0c-55a893321fed', 'date_tracing' => '2023-07-08' }
+          ]
+        }
+      )
+
+      expect(child.tracing_dates).to eq([Date.new(2022, 5, 9), Date.new(2023, 7, 8)])
     end
   end
 
   after do
-    clean_data(Incident, Child, Field, FormSection, PrimeroModule)
+    clean_data(SearchableIdentifier, Incident, Child, Field, FormSection, PrimeroModule)
   end
 
   private

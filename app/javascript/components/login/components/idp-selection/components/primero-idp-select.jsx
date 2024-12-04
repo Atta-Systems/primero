@@ -15,7 +15,7 @@ import { useApp } from "../../../../application";
 import { ConditionalWrapper } from "../../../../../libs";
 import disableOffline from "../../../../disable-offline";
 
-const Component = ({ identityProviders, css }) => {
+function Component({ identityProviders, css }) {
   const i18n = useI18n();
   const dispatch = useDispatch();
   const history = useHistory();
@@ -73,12 +73,12 @@ const Component = ({ identityProviders, css }) => {
           errorMessage={i18n.t("select_idp_error")}
         />
         <ConditionalWrapper wrapper={disableOffline} condition={!online} offlineTextKey="unavailable_offline">
-          <FormAction options={{ form: FORM_ID, type: "submit" }} text={i18n.t("go")} />
+          <FormAction options={{ form: FORM_ID, type: "submit", className: css.loginButton }} text={i18n.t("go")} />
         </ConditionalWrapper>
       </div>
     </>
   );
-};
+}
 
 Component.propTypes = {
   css: PropTypes.object,

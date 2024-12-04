@@ -17,7 +17,6 @@ describe Api::V2::TracingRequestsController, type: :request do
       data: { name: 'Trace Test 2' },
       tracing_request: @tracing_request2
     )
-    Sunspot.commit
   end
 
   let(:json) { JSON.parse(response.body) }
@@ -36,6 +35,10 @@ describe Api::V2::TracingRequestsController, type: :request do
       expect(json['metadata']['total']).to eq(2)
       expect(json['metadata']['per']).to eq(20)
       expect(json['metadata']['page']).to eq(1)
+    end
+
+    it_behaves_like 'a paginated resource' do
+      let(:action) { { resource: 'tracing_requests' } }
     end
 
     it 'returns flag_count for the short form ' do

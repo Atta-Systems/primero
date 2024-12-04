@@ -4,8 +4,6 @@
 
 # An indicator that returns the individual age
 class ManagedReports::Indicators::IndividualAge < ManagedReports::SqlReportIndicator
-  include ManagedReports::MRMIndicatorHelper
-
   class << self
     def id
       'individual_age'
@@ -41,7 +39,7 @@ class ManagedReports::Indicators::IndividualAge < ManagedReports::SqlReportIndic
             #{date_range_query(params['date_of_first_report'], 'incidents')&.prepend('and ')}
             #{date_range_query(params['ctfmr_verified_date'], 'violations')&.prepend('and ')}
             #{equal_value_query(params['ctfmr_verified'], 'violations')&.prepend('and ')}
-            #{equal_value_query_multiple(params['violation_type'], 'violations', 'type')&.prepend('and ')}
+            #{equal_value_query_multiple(params['violation_type'], 'violations', 'data', 'type')&.prepend('and ')}
         ) individual_children
         group by
           #{age_ranges_query('individual_age', 'individual_children', false)},

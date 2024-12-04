@@ -3,7 +3,7 @@
 import isObject from "lodash/isObject";
 
 import { DB_COLLECTIONS_NAMES } from "../../db";
-import { METHODS, RECORD_PATH } from "../../config/constants";
+import { METHODS, RECORD_PATH } from "../../config";
 import { ENQUEUE_SNACKBAR } from "../notifier";
 import { CLEAR_DIALOG } from "../action-dialog";
 import RecordFormActions from "../record-form/actions";
@@ -54,7 +54,9 @@ describe("records - Action Creators", () => {
       "setSelectedPotentialMatch",
       "setSelectedRecord",
       "unMatchCaseForTrace",
-      "deleteAlertFromRecord"
+      "deleteAlertFromRecord",
+      "linkIncidentToCase",
+      "fetchLinkIncidentToCaseData"
     ].forEach(property => {
       expect(creators).to.have.property(property);
       expect(creators[property]).to.be.a("function");

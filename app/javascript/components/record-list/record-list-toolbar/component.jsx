@@ -1,15 +1,15 @@
 // Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
 
 import PropTypes from "prop-types";
-import { Hidden, IconButton } from "@material-ui/core";
-import FilterListIcon from "@material-ui/icons/FilterList";
-import ImportExportIcon from "@material-ui/icons/ImportExport";
+import { Box, IconButton } from "@mui/material";
+import FilterListIcon from "@mui/icons-material/FilterList";
 
 import { PageHeading } from "../../page";
 import RecordActions from "../../record-actions";
 import Permission, { CREATE_RECORDS } from "../../permissions";
 import AddRecordMenu from "../add-record-menu";
 import { useDrawer } from "../../drawer";
+import SortButton from "../components/sort-container/sort-button";
 import { FILTER_DRAWER } from "../components/filter-container/constants";
 import { SORT_DRAWER } from "../components/sort-container/constants";
 
@@ -17,20 +17,18 @@ import { NAME } from "./constants";
 
 const mode = { isShow: true };
 
-const Component = ({ title, recordType, selectedRecords, currentPage, clearSelectedRecords }) => {
+function Component({ title, recordType, selectedRecords, currentPage, clearSelectedRecords, phonetic = false }) {
   const { toggleDrawer: toggleFilterDrawer } = useDrawer(FILTER_DRAWER);
   const { toggleDrawer: toggleSortDrawer } = useDrawer(SORT_DRAWER);
 
   return (
     <PageHeading title={title}>
-      <Hidden mdUp>
-        <IconButton onClick={toggleSortDrawer} color="primary">
-          <ImportExportIcon />
-        </IconButton>
-        <IconButton onClick={toggleFilterDrawer} color="primary">
+      <Box sx={{ display: { md: "none", xs: "block" } }}>
+        <SortButton phonetic={phonetic} toggleSortDrawer={toggleSortDrawer} />
+        <IconButton size="large" onClick={toggleFilterDrawer} color="primary">
           <FilterListIcon />
         </IconButton>
-      </Hidden>
+      </Box>
       <Permission resources={recordType} actions={CREATE_RECORDS}>
         <AddRecordMenu recordType={recordType} />
       </Permission>
@@ -44,11 +42,12 @@ const Component = ({ title, recordType, selectedRecords, currentPage, clearSelec
       />
     </PageHeading>
   );
-};
+}
 
 Component.propTypes = {
   clearSelectedRecords: PropTypes.func,
   currentPage: PropTypes.number,
+  phonetic: PropTypes.bool,
   recordType: PropTypes.string.isRequired,
   selectedRecords: PropTypes.object,
   title: PropTypes.string.isRequired

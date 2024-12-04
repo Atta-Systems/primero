@@ -5,10 +5,10 @@
 import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import isEmpty from "lodash/isEmpty";
-import { FormControlLabel, FormHelperText, Radio, FormControl, InputLabel } from "@material-ui/core";
+import { FormControlLabel, FormHelperText, Radio, FormControl, InputLabel } from "@mui/material";
 import { Field, connect, getIn } from "formik";
 import omitBy from "lodash/omitBy";
-import { RadioGroup } from "formik-material-ui";
+import { RadioGroup } from "formik-mui";
 
 import { useI18n } from "../../../i18n";
 import { getOption } from "../../selectors";
@@ -16,7 +16,7 @@ import { RADIO_FIELD_NAME } from "../constants";
 import css from "../styles.css";
 import { useMemoizedSelector } from "../../../../libs";
 
-const RadioField = ({ name, helperText, label, disabled, field, formik, mode, ...rest }) => {
+function RadioField({ name, helperText, label, disabled, field, formik, mode, ...rest }) {
   const i18n = useI18n();
 
   const selectedValue = field.selected_value;
@@ -56,7 +56,6 @@ const RadioField = ({ name, helperText, label, disabled, field, formik, mode, ..
   };
 
   const fieldError = getIn(formik.errors, name);
-  const fieldTouched = getIn(formik.touched, name);
 
   useEffect(() => {
     if (mode.isNew && selectedValue && value === "") {
@@ -87,17 +86,17 @@ const RadioField = ({ name, helperText, label, disabled, field, formik, mode, ..
   const renderOption = options.length > 0 && options.map(opt => renderFormControl(opt));
 
   return (
-    <FormControl id={name} fullWidth error={!!(fieldError && fieldTouched)}>
+    <FormControl id={name} fullWidth error={!!fieldError}>
       <InputLabel shrink htmlFor={fieldProps.name} required={field.required}>
         {label}
       </InputLabel>
       <Field component={RadioGroup} {...fieldProps}>
         <div className={css.radioOption}>{renderOption}</div>
       </Field>
-      <FormHelperText>{fieldError && fieldTouched ? fieldError : helperText}</FormHelperText>
+      <FormHelperText>{fieldError || helperText}</FormHelperText>
     </FormControl>
   );
-};
+}
 
 RadioField.displayName = RADIO_FIELD_NAME;
 

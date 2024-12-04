@@ -9,7 +9,7 @@ import isEmpty from "lodash/isEmpty";
 import omit from "lodash/omit";
 import { useLocation } from "react-router-dom";
 import { push } from "connected-react-router";
-import { Tabs, Tab } from "@material-ui/core";
+import { Tabs, Tab } from "@mui/material";
 import { fromJS } from "immutable";
 
 import SavedSearches, { fetchSavedSearches } from "../saved-searches";
@@ -22,13 +22,15 @@ import useMemoizedSelector from "../../libs/use-memoized-selector";
 import { reduceMapToObject } from "../../libs/component-helpers";
 
 import { DEFAULT_SELECTED_RECORDS_VALUE, FILTER_CATEGORY, HIDDEN_FIELDS } from "./constants";
-import { compactFilters, transformFilters } from "./utils";
-import { Search } from "./components/filter-types";
+import { compactFilters, removeSearchIdParams, transformFilters } from "./utils";
+import SearchBox from "./components/search-box";
 import { applyFilters, setFilters } from "./action-creators";
 import css from "./components/styles.css";
 import TabFilters from "./components/tab-filters";
 
-const Component = ({ recordType, setSelectedRecords, metadata }) => {
+const tabs = [{ name: "saved_search.filters_tab", selected: true }, { name: "saved_search.saved_searches_tab" }];
+
+function Component({ recordType, setSelectedRecords, metadata }) {
   const i18n = useI18n();
   const dispatch = useDispatch();
   const location = useLocation();
@@ -95,20 +97,22 @@ const Component = ({ recordType, setSelectedRecords, metadata }) => {
 
   useEffect(() => {
     if (methods.reset && queryString) {
-      methods.reset({ ...transformFilters.split(queryParams), filter_category: methods.getValues("filter_category") });
+      methods.reset({
+        query: null,
+        phonetic: null,
+        ...transformFilters.split(queryParams),
+        filter_category: methods.getValues("filter_category")
+      });
     }
   }, [methods.reset, queryString]);
 
-  const tabs = [
-    { name: i18n.t("saved_search.filters_tab"), selected: true },
-    { name: i18n.t("saved_search.saved_searches_tab") }
-  ];
-
   const handleSubmit = useCallback(data => {
-    const payload = omit(transformFilters.combine(compactFilters(data)), "filter_category");
+    const payload = removeSearchIdParams(omit(transformFilters.combine(compactFilters(data)), "filter_category"));
 
     resetSelectedRecords();
-    dispatch(applyFilters({ recordType, data: payload }));
+    dispatch(
+      applyFilters({ recordType, data: { ...payload, ...(payload.query ? { query: payload.query?.trim() } : {}) } })
+    );
   }, []);
 
   const handleSave = useCallback(() => {
@@ -134,15 +138,15 @@ const Component = ({ recordType, setSelectedRecords, metadata }) => {
   const handleChangeTabs = (_event, value) => setTabIndex(value);
 
   return (
-    <div className={css.root}>
+    <div className={css.root} data-testid="filters">
       <FormProvider {...methods} user={userName}>
         <form onSubmit={methods.handleSubmit(handleSubmit)}>
-          <Search />
+          <SearchBox />
           <div className={css.tabContainer}>
             <Tabs value={tabIndex} onChange={handleChangeTabs} classes={{ root: css.tabs }} variant="fullWidth">
               {tabs.map(({ name, selected, ...rest }) => (
                 <Tab
-                  label={name}
+                  label={i18n.t(name)}
                   key={name}
                   classes={{ root: css.tab, selected: css.tabselected }}
                   selected={selected}
@@ -177,7 +181,7 @@ const Component = ({ recordType, setSelectedRecords, metadata }) => {
       <SavedSearchesForm recordType={recordType} getValues={methods.getValues} open={open} setOpen={setOpen} />
     </div>
   );
-};
+}
 
 Component.displayName = "IndexFilters";
 

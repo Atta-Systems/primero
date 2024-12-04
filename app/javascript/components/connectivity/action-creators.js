@@ -2,7 +2,9 @@
 
 /* eslint-disable import/prefer-default-export */
 import { ROUTES } from "../../config";
-import { SNACKBAR_VARIANTS, closeSnackbar, ENQUEUE_SNACKBAR } from "../notifier";
+import { ENQUEUE_SNACKBAR } from "../notifier/actions";
+import { SNACKBAR_VARIANTS } from "../notifier/constants";
+import { closeSnackbar } from "../notifier/action-creators";
 
 import actions from "./actions";
 import { CONNECTION_LOST, CONNECTED, FIELD_MODE_OFFLINE } from "./constants";
@@ -65,13 +67,20 @@ export const setPendingUserLogin = payload => ({
   payload
 });
 
-export const getServerStatus = () => ({
+export const getServerStatus = ({ showSnackbars = true, successCallback = [] }) => ({
   type: actions.SERVER_STATUS,
   api: {
     path: ROUTES.check_server_health,
     external: true,
-    successCallback: [{ action: actions.SERVER_STATUS, payload: true }, onlineSnackbar(true, { forMiddleware: true })],
-    failureCallback: [{ action: actions.SERVER_STATUS, payload: false }, onlineSnackbar(false, { forMiddleware: true })]
+    successCallback: [
+      { action: actions.SERVER_STATUS, payload: true },
+      showSnackbars && onlineSnackbar(true, { forMiddleware: true }),
+      ...successCallback
+    ],
+    failureCallback: [
+      { action: actions.SERVER_STATUS, payload: false },
+      showSnackbars && onlineSnackbar(false, { forMiddleware: true })
+    ]
   }
 });
 
@@ -79,23 +88,25 @@ export function setFieldMode(dispatch) {
   dispatch(setNetworkStatus(false));
 }
 
-export const checkServerStatus = isOnline => (dispatch, getState) => {
-  const userToggledOffline = getState().getIn(["connectivity", "fieldMode"]);
+export const checkServerStatus =
+  (isOnline, showSnackbars, successCallback = []) =>
+  (dispatch, getState) => {
+    const userToggledOffline = getState().getIn(["connectivity", "fieldMode"]);
 
-  dispatch(closeSnackbar(isOnline ? CONNECTION_LOST : CONNECTED));
+    dispatch(closeSnackbar(isOnline ? CONNECTION_LOST : CONNECTED));
 
-  if (userToggledOffline) {
-    setFieldMode(dispatch);
-  } else {
-    dispatch(closeSnackbar(FIELD_MODE_OFFLINE));
-    dispatch(setNetworkStatus(isOnline));
-    if (isOnline) {
-      dispatch(getServerStatus(isOnline));
+    if (userToggledOffline) {
+      setFieldMode(dispatch);
     } else {
-      dispatch({ type: ENQUEUE_SNACKBAR, ...onlineSnackbar(isOnline, { forMiddleware: true }) });
+      dispatch(closeSnackbar(FIELD_MODE_OFFLINE));
+      dispatch(setNetworkStatus(isOnline));
+      if (isOnline) {
+        dispatch(getServerStatus({ showSnackbars, successCallback }));
+      } else {
+        dispatch({ type: ENQUEUE_SNACKBAR, ...onlineSnackbar(isOnline, { forMiddleware: true }) });
+      }
     }
-  }
-};
+  };
 
 export const setQueueData = payload => ({
   type: actions.SET_QUEUE_DATA,

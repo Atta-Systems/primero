@@ -1,9 +1,9 @@
 // Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
 
-import { renderHook, act } from "@testing-library/react-hooks";
 import { Provider } from "react-redux";
 import isFunction from "lodash/isFunction";
 import { fromJS } from "immutable";
+import { renderHook } from "@testing-library/react";
 
 import I18nProvider from "../components/i18n/provider";
 

@@ -32,7 +32,7 @@ import ViewModal from "./view-modal";
 import SortContainer from "./components/sort-container";
 import FilterContainer from "./components/filter-container";
 
-const Container = ({ match, location }) => {
+function Container({ match, location }) {
   const { mobileDisplay } = useThemeHelper();
   const i18n = useI18n();
   const currentQueryString = location.search.replace("?", "");
@@ -149,9 +149,11 @@ const Container = ({ match, location }) => {
 
   const rowSelectable = useCallback(record => recordAvailable(record) || online, [online]);
 
+  const phonetic = useMemo(() => queryParams.phonetic === "true", [queryParams.phonetic]);
+
   const columns = useMemo(
-    () => buildTableColumns(listHeaders, i18n, recordType, css, recordAvailable, online),
-    [online, listHeaders, recordType]
+    () => buildTableColumns(listHeaders, i18n, recordType, css, recordAvailable, online, phonetic),
+    [online, listHeaders, recordType, phonetic]
   );
 
   const handleSelectedRecords = useCallback(ids => {
@@ -169,6 +171,7 @@ const Container = ({ match, location }) => {
           currentPage={currentPage}
           selectedRecords={selectedRecords}
           clearSelectedRecords={clearSelectedRecords}
+          phonetic={phonetic}
         />
         <PageContent flex>
           <div className={css.tableContainer}>
@@ -189,7 +192,9 @@ const Container = ({ match, location }) => {
             </div>
           </div>
 
-          {mobileDisplay && <SortContainer columns={columns} recordType={recordType} applyFilters={applyFilters} />}
+          {mobileDisplay && !phonetic && (
+            <SortContainer columns={columns} recordType={recordType} applyFilters={applyFilters} />
+          )}
           <FilterContainer mobileDisplay={mobileDisplay}>
             <Filters recordType={recordType} setSelectedRecords={handleSelectedRecords} metadata={metadata} />
           </FilterContainer>
@@ -205,7 +210,7 @@ const Container = ({ match, location }) => {
       )}
     </>
   );
-};
+}
 
 Container.displayName = NAME;
 

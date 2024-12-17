@@ -2,7 +2,7 @@
 
 import { Map, List, fromJS } from "immutable";
 
-import { RECORD_PATH } from "../../config/constants";
+import { RECORD_PATH } from "../../config";
 
 const fieldMapModule = (state, moduleID) =>
   state
@@ -67,6 +67,10 @@ export const getIncidentFromCase = state => {
 
 export const getCaseIdForIncident = state => {
   return state.getIn(["records", "cases", "incidentFromCase", "incident_case_id"], false);
+};
+
+export const getCaseIdDisplayForIncident = state => {
+  return state.getIn(["records", "cases", "incidentFromCase", "case_id_display"], false);
 };
 
 export const getFieldMap = (state, moduleID) => {

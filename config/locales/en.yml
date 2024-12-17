@@ -184,6 +184,7 @@ en:
     import: Import
     login: Log in
     logout: Log out
+    link: Link
     mark_for_mobile: Mark for mobile
     new: New
     ok: OK
@@ -534,6 +535,10 @@ en:
       date_case_plan_initiated: Date of Case Plan
       date_of_creation: Date of Creation
       registration_date: Date of Registration
+      followup_date: Date of Follow Up
+      date_reunification: Date of Reunification
+      tracing_date: Date of Tracing
+      service_implemented_day_time: Date Service Completed
   configurations:
     apply_label: Are you sure? If you apply, the settings in this configuration will be applied to the system.
       You will lose all your current settings and will not be able to get them back unless you have already saved
@@ -598,6 +603,13 @@ en:
     all_cases: All Cases
     all_services_implemented: All Services Implemented
     and: 'and '
+    action_needed:
+      awaiting_acceptance: Awaiting Acceptance
+      header: Action Needed
+      new: New
+      new_this_week: New this Week
+      referrals: Referrals
+      transfers: Transfers
     approval_action_plan_approved: Approved
     approval_action_plan_pending: Pending
     approval_action_plan_pending_group: Action Plan
@@ -903,6 +915,8 @@ en:
   errors:
     api:
       internal_server: Server Error
+    attachments:
+      maximum: You have reached your maximum attachments per record.
     error_loading: Error Loading Record(s)
     models:
       agency:
@@ -1039,6 +1053,7 @@ en:
         subforms: 'Subform: %{subform_name}'
         collapsed_fields: 'Collapsed Fields: %{fields}'
         country: Countries
+        linkedincidents: Linked Incidents
       summary_header:
         form_group: Primero Form Group
         form: Primero Forms
@@ -1167,6 +1182,8 @@ en:
     add_existing_field: Add Existing Field
     add_field: Add Field
     add_field_type: Add %{file_type}
+    attachments:
+      maximum_attached: Maximum attachments limit per record (%{maximumttachmentsPerRecord}) reached. This includes photos, audio, and documents. Please remove a file before adding another.
     audio:
       current: Current Audio
     audio_upload_box: Audio Upload
@@ -1435,6 +1452,8 @@ en:
     ar-JO: العربية (الأردنية)
     ar-LB: العربية (اللبنانية)
     ar-SD: العربية (السودانية)
+    aeb: العربية (التونسية)
+    ar-SY: العربية (السورية)
     bn: বাংলা
     cmn: 中文
     current_time_zone: Current time zone
@@ -1479,6 +1498,8 @@ en:
   incident:
     code: Incident Code
     associated_case: "Associated Case:"
+    link_incident_to_case: Link Incident to Case
+    link_incident_to_case_success: Linked incident(s) to case
     messages:
       creation_success: Incident record successfully created.
       creation_success_queue: Incident record successfully created in background
@@ -1504,6 +1525,7 @@ en:
         military_use: Military use of school(s) and/or hospital(s)
         denial_humanitarian_access: Denial of humanitarian access for children
   incidents:
+    change_status: Change Status
     disable_dialog: Clicking OK will change the status of this incident to Disabled.
     disable_dialog_title: Disable Incident
     disable_success: Successfully disabled incident
@@ -1585,6 +1607,7 @@ en:
     survivor_code: Survivor Code
     show_incident: 'Incident ID %{short_id}'
     social_worker: Social Worker
+    verify_mrm: Verify MRM
     violation_type: Violation Type
     violence_type: Violence Type
     type_violence: Type of Violence
@@ -1795,6 +1818,15 @@ en:
       parish: Parish
       cercle: Cercle
       sub-county: Sub-county
+      departement_fr: 'Département'
+      region_fr: 'Région'
+      wilaya: 'Wilaya'
+      commune: 'Commune'
+      division_fr: 'Division'
+      prefecture: 'Prefecture'
+      moughataa: 'Moughataa'
+      sub_division: 'Sub-division'
+      sub-prefecture: 'Sub-Prefecture'
     label: Location
     name: Name
     code: Code
@@ -2003,6 +2035,10 @@ en:
       workflow: Workflow Status
       cp_incident_violence_type: Type of Violence
       referral_transfer_status: Referral / Transfer Status
+      protection_concerns: Protection Concerns
+      location: Reporting Location
+      followup_type: Type of Follow Up
+      service_type: Type of Service
     status_options:
       open: Open
       closed: Closed
@@ -2044,6 +2080,50 @@ en:
         individual_violation_type: Individual Children by Violation Type
         individual_region: Individual Children by Region
         individual_perpetrator: Individual Children by Perpetrator
+    services:
+      name: Services
+      description: Cases with the selected Service types, broken down by age and sex.
+    services_report:
+      reports:
+        services: Services
+        description: Cases with the selected Service types, broken down by age and sex.
+      sub_reports:
+        services: Services
+      filter_options:
+        service_implemented_day_time: Service completed
+    followups:
+      name: Follow Ups
+      description: Cases with the selected Follow Up types, broken down by age and sex.
+    followups_report:
+      filter_options:
+        followup_date: Date of follow-up
+      reports:
+        followups: Follow Ups
+        description: Cases with the selected Follow Up types, broken down by age and sex.
+      sub_reports:
+        followups: Follow Ups
+    protection_concerns:
+      name: Protection Concerns
+      description: Cases with the selected Protection Concerns, broken down by age and sex.
+    protection_concerns_report:
+      reports:
+        protection_concerns: Protection Concerns
+        description: Cases with the selected Protection Concerns, broken down by age and sex.
+      sub_reports:
+        protection_concerns: Protection Concerns
+      filter_options:
+        registration_date: Date of Registration
+    reporting_locations:
+      name: Reporting Location
+      description: 'Cases with the selected Reporting Location, broken down by age and sex.'
+    reporting_locations_report:
+      reports:
+        reporting_locations: Reporting Location
+        description: ''
+      sub_reports:
+        reporting_location_by_sex_and_age: Reporting Location
+      filter_options:
+        registration_date: Date of Registration
     ghn_report:
       name: Global Horizontal Note
       description: ''
@@ -2135,35 +2215,36 @@ en:
         date_of_first_report: Date of Interview
         incident_date: Date of Incident
       reports:
-        incidents: Incidents
+        incidents: GBV Statistics
         perpetrators: Perpetrators
         survivors: Survivors
         referrals: Referrals
       sub_reports:
-        combined: Incidents
-        total: Number of GBV Incidents Reported
-        gbv_sexual_violence: Number of Incidents of Sexual Violence Reported
-        gbv_previous_incidents: Number of Incidents Reported by Survivors with Prior GBV Incidents
-        gbv_sexual_violence_type: Incident Type
-        incident_timeofday: Incident Time of Day
-        elapsed_reporting_time: Time Between Incident and Report Date
-        elapsed_reporting_time_rape: Incidents of Rape, Time Elapsed between Incident and Report Date
-        elapsed_reporting_time_rape_health_referral: Incidents of Rape, Time Elapsed between Incident and Report Date (Health Service or Referral)
-        incident_location_type: Incident Location
-        number_of_perpetrators: Number of Perpetrators
-        perpetrator_relationship: Alleged Primary Perpetrator's Relationship to Survivor
-        perpetrator_age_group: Alleged Primary Perpetrators Age Group
-        perpetrator_occupation: Alleged Primary Perpetrator Occupation
-        age: Number of Survivors by Age
-        sex: Number of Survivors by Sex
-        marital_status: Marital Status of Survivors
-        displacement_status: Displacement Status of Survivors
-        displacement_incident: Stage of Displacement at time of Incident
-        gbv_case_context: Case Context
-        incidents_first_point_of_contact: Number of Incidents where your organization is the first point of contact
-        incidents_from_other_service_provider: Incidents Referred from Other Service Providers
-        number_of_services_provided: Number of Services Provided for Incidents
-        number_of_services_provided_other: New Incident Referrals to Other Service Providers
+        incidents: Incidents
+        combined: General Statistics
+        total: 1. New GBV Incidents Reported
+        gbv_sexual_violence: Survivor Statistics - 9. Number of Incidents of Sexual Violence Reported
+        gbv_previous_incidents: 2. New Incidents of Sexual Violence Reported
+        gbv_sexual_violence_type: Incident Statistics - 10. Type of GBV
+        incident_timeofday: Incident Statistics - 11. Incident Time of Day
+        elapsed_reporting_time: Incident Statistics - 13. Time Between Incident and Report Date
+        elapsed_reporting_time_rape: Incident Statistics - 14. Incidents of Rape, Time Elapsed between Incident and Report Date
+        elapsed_reporting_time_rape_health_referral: Incident Statistics - 15. Incidents of Rape, Time Elapsed (Health Service or Referral)
+        incident_location_type: Incident Statistics - 16. Incident Location
+        number_of_perpetrators: Perpetrator Statistics - 17. Number of Primary Perpetrators
+        perpetrator_relationship: Perpetrator Statistics - 18. Alleged Perpetrator - Survivor Relationship
+        perpetrator_age_group: Perpetrator Statistics - 19. Alleged Primary Perpetrators Age Group
+        perpetrator_occupation: Perpetrator Statistics - 20. Alleged Primary Perpetrator Occupation
+        age: Survivor Statistics - 4. Age of survivors
+        sex: Survivor Statistics - 3. Sex of survivors
+        marital_status: Survivor Statistics - 5. Marital Status of Survivors
+        displacement_status: Survivor Statistics - 6. Displacement Status at Time of Report
+        displacement_incident: Survivor Statistics - 7. Stage of Displacement at Time of Incident
+        gbv_case_context: Incident Statistics - 12. Case Context
+        incidents_first_point_of_contact: Referral Statistics - 21. Number of incidents for which your organisation is the first point of contact
+        incidents_from_other_service_provider: Referral Statistics - 22. Incidents Referred From Other Service Providers
+        number_of_services_provided: Referral Statistics - 23. Number of Services Provided for Incidents
+        number_of_services_provided_other: Referral Statistics - 24. New Incident Referrals to Other Service Providers
         service_safehouse_referral: Safe House/Safe Shelter Referral
         service_medical_referral: Health/Medical Referral
         service_psycho_referral: Psychosocial/Counseling Services
@@ -2171,11 +2252,11 @@ en:
         service_police_referral: Police or Other Type of Security Services
         service_livelihoods_referral: Livelihoods Services
         service_protection_referral: Child Protection Services
-        vulnerable_populations: Vulnerable Populations
+        vulnerable_populations: Survivor Statistics - 8. Vulnerable Populations
         survivors_disability_type: With Disabilities
     workflow_report:
       name: Workflow
-      description: ''
+      description: Cases and Incidents with the selected Workflow Status, broken down by age and sex.
       reports:
         cases_workflow: Workflow - Cases
         incidents_workflow: Workflow - Incidents
@@ -2184,9 +2265,18 @@ en:
       sub_reports:
         case_workflow_by_sex_and_age: Total Number of Cases by Sex and Age
         incident_workflow_by_sex_and_age: Total Number of Incidents by Sex and Age
+    cases_workflow_report:
+      name: Workflow
+      description: Cases with the selected Workflow Status, broken down by age and sex.
+      reports:
+        cases_workflow: Workflow - Cases
+      filter_options:
+        registration_date: Registration Date
+      sub_reports:
+        case_workflow_by_sex_and_age: Total Number of Cases by Sex and Age
     referrals_transfers_report:
       name: Referrals and Transfers
-      description: ''
+      description: Referrals and Transfers which have occurred within a given time span. Broken down by sending and receiving Agencies or User Groups.
       reports:
         total_referrals: Referrals
         total_transfers: Transfers
@@ -2235,6 +2325,7 @@ en:
       no_match: Sorry, no matching records found
       rows_per_page: Rows per page
       sort: Sort
+      sort_disabled_name_fields: Sort disabled when searching by name fields
   navigation:
     bulk_exports: Exports
     cases: Cases
@@ -2245,6 +2336,12 @@ en:
     reports: Reports
     insights: Insights
     search: Search
+    phonetic_search:
+      title: Enter a name to search for an existing record.
+      label: Use Name Fields
+      help_text: Phonetic search is available for Name fields
+    id_search:
+      title: Enter the ID number to search for an existing record.
     settings: Settings
     support: Support
     support_menu:
@@ -2393,6 +2490,7 @@ en:
       transfer: Can be used for transfer
       user: Users
       user_group: User Groups
+      verify_mrm: Verify MRM
       view_approvals: View Approvals
       view_assessment: View Assessment
       view_photo: View Photo
@@ -2912,6 +3010,20 @@ en:
         label: Case
       dashboard:
         actions:
+          action_needed_new_updated:
+            explanation: Displays the 'New and Updated' indicator in the 'Action Needed' dashboard.
+              This includes Cases which are newly assigned to the current user, or which another
+              user has updated since the last time the current user updated it.
+            label: 'Action Needed: New or Updated'
+          action_needed_new_referrals:
+            explanation: Displays the 'New Referrals' indicator in the 'Action Needed' dashboard.
+              This includes any Cases with a new Referral sent to the current user,
+              where the current user is not the last person to update the Case.
+            label: 'Action Needed: New Referrals'
+          action_needed_transfer_awaiting_acceptance:
+            explanation: Displays the 'Transfers Awaiting Acceptance' indicator in the 'Action Needed' dashboard.
+              This includes any Cases with a Transfer to the current user, which the current user has not accepted.
+            label: 'Action Needed: Transfers Awaiting Acceptance'
           approvals_action_plan:
             explanation: Shows the number of the current user's cases with Action
               Plan approval requests which are Pending, Approved, or Rejected.
@@ -3290,6 +3402,9 @@ en:
               edited, such as when notes are updated. Alerts are usually shown
               with a yellow dot next to the incident.
             label: Remove alert from an incident
+          link_incident_to_case:
+            explanation: Allows the user to link the incident with selected case.
+            label: Link incident to Case
           manage:
             explanation: Allows a user to perform all available actions on incidents.
               The "Manage" permission essentially means "everything".
@@ -3308,6 +3423,9 @@ en:
               also cannot sync their mobile devices with the web application in general,
               meaning that they cannot use the mobile app to manage incidents.
             label: Sync with mobile device
+          verify_mrm:
+            explanation: MRM user can change the status of violations.
+            label: Verify MRM
           write:
             explanation: Ability to click the "Edit" button, update information about
               the incident, and click "Save". Also allows the user to disable or enable
@@ -3325,6 +3443,18 @@ en:
         label: Is Manager?
       managed_report:
         actions:
+          reporting_locations_report:
+            label: Reporting Location (Cases)
+            explanation: Ability to view statistics on the number of Cases registered within a given date range, filtered by Reporting Location, and broken down by age and sex. This permission also allows the user to export data from an Insight.
+          followups_report:
+            label: Followups (Cases)
+            explanation: Ability to view statistics on the number of Follow Ups performed within a given date range, filtered by Type of Follow Up, and broken down by age and sex. This permission also allows the user to export data from an Insight.
+          services_report:
+            label: Services (Cases)
+            explanation: Ability to view statistics on the number of Services performed within a given date range, filtered by service type, and broken down by age and sex. This permission also allows the user to export data from an Insight.
+          protection_concerns_report:
+            label: Protection Concerns (Cases)
+            explanation: Ability to view statistics on the Protection Concerns of Cases registered within a given date range. This permission also allows the user to export data from an Insight.
           managed_report_scope:
             label: What records should this role be able to see in Insights?
           managed_report_scope_all:
@@ -3346,15 +3476,17 @@ en:
             explanation: Ability to access the MRM Individual Children Insight.
             label: Individual Children
           workflow_report:
-            label: Workflow
-            explanation: Ability to view statistics on Workflow Status. This permission also allows the user to export
-              data from an Insight.
+            label: Workflow (Cases and Incidents)
+            explanation: Ability to view statistics on Workflow Status for both Cases and the Incidents linked to them. This permission also allows the user to export data from an Insight.
+          cases_workflow_report:
+            label: Workflow (Cases)
+            explanation: Ability to view statistics on Workflow Status Cases. This permission also allows the user to export data from an Insight.
           violence_type_report:
-            label: Type of Violence
+            label: Type of Violence (Cases and Incidents)
             explanation: Ability to view statistics on Type of Violence. This permission also allows
               the user to export data from an Insight.
           referrals_transfers_report:
-            label: Referrals and Transfers
+            label: Referrals and Transfers (Cases)
             explanation: Users see the number of cases referred and transferred from each User Group
               to each other User Group.
       matching_configuration:
@@ -4305,10 +4437,21 @@ en:
     provider_username_help: 'Example: my.username@%{domain}'
     role_id: Role
     send_mail: Receive email notifications?
+    send_mail_preferences:
+      label: Which types of email notifications would you like to receive?
+      help_text: If you leave this field blank, you will receive all email notifications.
     receive_webpush:
       label: Receive push notifications?
       help_text: Note that you will still need to allow push notifications on your device’s browser.
       tooltip: You must first edit your account and enable push notifications for your user.
+    receive_webpush_preferences:
+      label: Which types of push notifications would you like to receive?
+      help_text: If you leave this field blank, you will receive all push notifications.
+    notification_preferences:
+        approval_request: 'Approval Request (Managers)'
+        approval_response: 'Approval Response (Case Workers)'
+        transition_notification: 'Assignments, Transfers, and Referrals'
+        transfer_request: 'Transfer Requests'
     user_group_unique_ids: User Groups
     user_name: Username
     services: Services

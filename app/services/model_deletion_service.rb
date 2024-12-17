@@ -5,7 +5,7 @@
 # Service to handle deletion of data for a specific model and its associations
 # rubocop:disable Metrics/ClassLength
 class ModelDeletionService < ValueObject
-  UUID_REFERENCED_MODELS = [Alert, Attachment, Trace, Violation].freeze
+  UUID_REFERENCED_MODELS = [Alert, Attachment, Trace, Violation, SearchableIdentifier].freeze
   attr_accessor :model_class
 
   def delete_records!(query)
@@ -19,7 +19,7 @@ class ModelDeletionService < ValueObject
       query.delete_all
     end
 
-    Sunspot.remove_by_id(model_class, record_ids)
+    remove_from_solr(record_ids)
   end
 
   def delete_all!
@@ -161,6 +161,12 @@ class ModelDeletionService < ValueObject
 
   def model_join_reflections
     model_class.reflect_on_all_associations(:has_and_belongs_to_many).reject(&:through_reflection?)
+  end
+
+  def remove_from_solr(record_ids)
+    return unless Rails.configuration.solr_enabled
+
+    Sunspot.remove_by_id(model_class, record_ids)
   end
 end
 # rubocop:enable Metrics/ClassLength

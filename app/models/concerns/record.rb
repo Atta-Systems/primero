@@ -19,23 +19,6 @@ module Record
     after_initialize :defaults, unless: :persisted?
     before_create :create_identification
     before_save :populate_subform_ids
-    after_save :index_nested_reportables
-    after_destroy :unindex_nested_reportables
-  end
-
-  def self.model_from_name(name)
-    case name
-    when 'case' then Child
-    when 'violation' then Incident
-    else Object.const_get(name.camelize)
-    end
-  rescue NameError
-    nil
-  end
-
-  def self.map_name(name)
-    name = name.underscore
-    name == 'child' ? 'case' : name
   end
 
   # Class methods for all Record types
@@ -57,7 +40,7 @@ module Record
     end
 
     def find_by_unique_identifier(unique_identifier)
-      find_by('data @> ?', { unique_identifier: }.to_json)
+      find_by("data %s '$.unique_identifier %s (@ == %s)'", '@?', '?', unique_identifier.to_json)
     end
 
     def parent_form
@@ -136,18 +119,6 @@ module Record
         subform['unique_id'].present? ||
           (subform['unique_id'] = SecureRandom.uuid)
       end
-    end
-  end
-
-  def index_nested_reportables
-    nested_reportables_hash.each do |_, reportables|
-      Sunspot.index reportables if reportables.present?
-    end
-  end
-
-  def unindex_nested_reportables
-    nested_reportables_hash.each do |_, reportables|
-      Sunspot.remove! reportables if reportables.present?
     end
   end
 end

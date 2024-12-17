@@ -8,8 +8,8 @@ require 'will_paginate'
 describe Incident do
   before do
     clean_data(
-      User, Agency, Role, Incident, Child, PrimeroModule, PrimeroProgram, UserGroup, FormSection, Field,
-      Violation, Response, IndividualVictim, Source, Perpetrator, GroupVictim
+      SearchableIdentifier, User, Agency, Role, Incident, Child, PrimeroModule, PrimeroProgram, UserGroup, FormSection,
+      Field, Violation, Response, IndividualVictim, Source, Perpetrator, GroupVictim
     )
 
     create(:agency)
@@ -69,12 +69,13 @@ describe Incident do
       let(:incident_data) do
         {
           'unique_id' => '790f958d-ac8e-414b-af64-e75831e3353a',
+          'module_id' => PrimeroModule::MRM,
           'incident_code' => '0123456',
           'description' => 'this is a test',
           'recruitment' => [
             {
               'unique_id' => '8dccaf74-e9aa-452a-9b58-dc365b1062a2',
-              'violation_tally': { 'boys': 3, 'girls': 1, 'unknown': 0, 'total': 4 },
+              'violation_tally' => { 'boys' => 3, 'girls' => 1, 'unknown' => 0, 'total' => 4 },
               'name' => 'violation1'
             }
           ],
@@ -116,7 +117,8 @@ describe Incident do
         }
       end
       before :each do
-        clean_data(Incident, Violation, Response, IndividualVictim, Source, Perpetrator, GroupVictim)
+        clean_data(SearchableIdentifier, Incident, Violation, Response, IndividualVictim, Source, Perpetrator,
+                   GroupVictim)
         incident_record = Incident.new_with_user(fake_user, incident_data)
         incident_record.save!
       end
@@ -174,7 +176,7 @@ describe Incident do
             'incident_location' => 'IQG08Q02N02',
             'incident_description' => 'none',
             'incident_total_tally' => { 'boys' => 1, 'total' => 1 },
-            'incident_code': '9f88531',
+            incident_code: '9f88531',
             'individual_victims' =>
              [{ 'violations_ids' => ['222d97fb-b49d-401a-aff5-55dbe81a6fbf'],
                 'individual_multiple_violations' => false,
@@ -218,7 +220,8 @@ describe Incident do
             'module_id' => 'primeromodule-mrm' }
         end
         before :each do
-          clean_data(Incident, Violation, Response, IndividualVictim, Source, Perpetrator, GroupVictim)
+          clean_data(SearchableIdentifier, Incident, Violation, Response, IndividualVictim, Source, Perpetrator,
+                     GroupVictim)
           incident_record = Incident.new_with_user(fake_user, data)
           incident_record.save!
         end
@@ -308,7 +311,7 @@ describe Incident do
 
   describe '.copy_from_case' do
     before(:each) do
-      clean_data(Incident, Child, PrimeroModule, User) && module_cp
+      clean_data(SearchableIdentifier, Incident, Child, PrimeroModule, User) && module_cp
       module_cp = PrimeroModule.new(
         unique_id: 'primeromodule-cp',
         field_map: {
@@ -408,7 +411,7 @@ describe Incident do
     end
 
     before :each do
-      clean_data(Incident, Violation)
+      clean_data(SearchableIdentifier, Incident, Violation)
       incident_record = Incident.new_with_user(fake_user, incident_data)
       incident_record.save!
     end
@@ -441,7 +444,9 @@ describe Incident do
 
   describe 'add_alert_on_case' do
     before(:each) do
-      clean_data(Agency, SystemSettings, User, Incident, Child, PrimeroModule, Violation) && module_cp
+      clean_data(
+        SearchableIdentifier, Agency, SystemSettings, User, Incident, Child, PrimeroModule, Violation
+      ) && module_cp
 
       Agency.create!(unique_id: 'agency-1', agency_code: 'a1', name: 'Agency')
 
@@ -463,24 +468,33 @@ describe Incident do
       case_cp
     end
 
-    it 'should add an alert for the case if the incident creator is not the case owner' do
-      incident = Incident.new_with_user(
-        User.new(user_name: 'incident_user', agency_id: Agency.last.id),
-        survivor_code: 'abc123', module_id: 'primeromodule-cp'
-      )
-      incident.case = case_cp
-      incident.save!
+    let(:incident_user) { User.new(user_name: 'incident_user', agency_id: Agency.last.id) }
 
-      case_cp.reload
+    context 'when incident creator is not the case owner' do
+      before do
+        incident = Incident.new_with_user(
+          incident_user,
+          survivor_code: 'abc123',
+          module_id: 'primeromodule-cp'
+        )
+        incident.case = case_cp
+        incident.save!
 
-      expect(case_cp.alerts.size).to eq(1)
+        case_cp.reload
+      end
+
+      it 'should add an alert for the case' do
+        expect(case_cp.alerts.size).to eq(1)
+        expect(case_cp.alerts.first.type).to eq('incident_from_case')
+        expect(case_cp.alerts.first.form_sidebar_id).to eq('incident_from_case')
+      end
     end
 
     it 'should add a record history in the case after incident is created' do
       last_updated_at = case_cp.last_updated_at
 
       incident = Incident.new_with_user(
-        User.new(user_name: 'incident_user', agency_id: Agency.last.id),
+        incident_user,
         survivor_code: 'abc123', module_id: 'primeromodule-cp'
       )
       incident.case = case_cp
@@ -496,14 +510,18 @@ describe Incident do
   end
 
   describe '#update_properties' do
-    let(:incident) { Incident.create!(unique_id: '1a2b3c', incident_code: '0123456', description: 'this is a test') }
+    let(:incident) do
+      Incident.create!(
+        unique_id: '1a2b3c', incident_code: '0123456', description: 'this is a test', module_id: PrimeroModule::MRM
+      )
+    end
 
     before do
       data = incident.data.clone
       data['recruitment'] = [
         {
           'unique_id' => '8dccaf74-e9aa-452a-9b58-dc365b1062a2',
-          'violation_tally': { 'boys': 3, 'girls': 1, 'unknown': 0, 'total': 4 },
+          'violation_tally' => { 'boys' => 3, 'girls' => 1, 'unknown' => 0, 'total' => 4 },
           'name' => 'violation1'
         }
       ]
@@ -584,21 +602,28 @@ describe Incident do
   end
 
   describe '#associations_as_data' do
-    let(:incident) { Incident.create!(unique_id: '1a2b3c', incident_code: '987654', description: 'this is a test') }
+    let(:incident) do
+      Incident.create!(
+        unique_id: '1a2b3c', incident_code: '987654', description: 'this is a test', module_id: PrimeroModule::MRM
+      )
+    end
+
     let(:incident2) do
       Incident.create!(
         unique_id: '15e65cf1-6980-4c7c-a591-94f900f5d721',
-        incident_code: '6980', description: 'this is a second test'
+        incident_code: '6980',
+        description: 'this is a second test',
+        module_id: PrimeroModule::MRM
       )
     end
 
     before(:each) do
-      clean_data(Incident, Violation, IndividualVictim)
+      clean_data(SearchableIdentifier, Incident, Violation, IndividualVictim)
       data = incident.data.clone
       data['recruitment'] = [
         {
           'unique_id' => '8dccaf74-e9aa-452a-9b58-dc365b1062a2',
-          'violation_tally': { 'boys': 3, 'girls': 1, 'unknown': 0, 'total': 4 },
+          'violation_tally' => { 'boys' => 3, 'girls' => 1, 'unknown' => 0, 'total' => 4 },
           'name' => 'violation1'
         }
       ]
@@ -716,10 +741,10 @@ describe Incident do
           {
             'id_number' => '1',
             'violations_ids' => ['8dccaf74-e9aa-452a-9b58-dc365b1062a2'],
-            "source_interview_date": '2023-02-01',
-            "source_category": 'secondary',
-            "source_type": 'photograph',
-            "unique_id": 'ba604357-5dce-4861-b740-af5d40398ef7'
+            'source_interview_date' => '2023-02-01',
+            'source_category' => 'secondary',
+            'source_type' => 'photograph',
+            'unique_id' => 'ba604357-5dce-4861-b740-af5d40398ef7'
           }
         ]
       }
@@ -818,6 +843,30 @@ describe Incident do
     end
   end
 
+  describe 'phonetic tokens' do
+    before do
+      clean_data(SearchableIdentifier, Incident)
+    end
+
+    it 'generates the phonetic tokens' do
+      incident = Incident.create!(data: { super_incident_name: 'George', incident_description: 'New Incident' })
+      expect(incident.tokens).to eq(%w[JRJ N ANST])
+    end
+  end
+
+  describe '#calculate_incident_date_derived' do
+    before do
+      clean_data(Incident)
+    end
+
+    it 'sets the incident_date_derived field' do
+      incident = Incident.create!(data: { super_incident_name: 'George', incident_description: 'New Incident',
+                                          incident_date: '2024-10-08' })
+
+      expect(incident.incident_date_derived).to eq(Date.new(2024, 10, 8))
+    end
+  end
+
   private
 
   def create_incident_with_created_by(created_by, options = {})
@@ -827,8 +876,8 @@ describe Incident do
 
   after do
     clean_data(
-      User, Agency, Role, Incident, Child, PrimeroModule, PrimeroProgram, UserGroup, FormSection, Field,
-      Violation, Response, IndividualVictim, Source, Perpetrator, GroupVictim
+      SearchableIdentifier, User, Agency, Role, Incident, Child, PrimeroModule, PrimeroProgram, UserGroup, FormSection,
+      Field, Violation, Response, IndividualVictim, Source, Perpetrator, GroupVictim
     )
   end
 end

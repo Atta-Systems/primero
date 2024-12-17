@@ -16,6 +16,7 @@ class Permission < ValueObject
   # If the role_unique_ids property is empty on a ROLE permission, then that allows this role to manage all other ROLES
   attr_accessor :resource, :actions, :role_unique_ids, :agency_unique_ids, :managed_report_scope
 
+  VERIFY_MRM = 'verify_mrm'
   READ = 'read'
   WRITE = 'write'
   ENABLE_DISABLE_RECORD = 'enable_disable_record'
@@ -166,14 +167,20 @@ class Permission < ValueObject
   LIST_CASE_NAMES = 'list_case_names'
   VIOLATION_REPORT = 'violations'
   GBV_STATISTICS_REPORT = 'gbv_statistics'
+  PROTECTION_CONCERNS_REPORT = 'protection_concerns_report'
+  REPORTING_LOCATIONS_REPORT = 'reporting_locations_report'
+  FOLLOWUPS_REPORT = 'followups_report'
+  SERVICES_REPORT = 'services_report'
   GHN_REPORT = 'ghn_report'
   INDIVIDUAL_CHILDREN = 'individual_children'
   VIOLATIONS_CATEGORY_VERIFICATION_STATUS = 'violations_category_verification_status'
   WORKFLOW_REPORT = 'workflow_report'
+  CASES_WORKFLOW_REPORT = 'cases_workflow_report'
   VIOLENCE_TYPE_REPORT = 'violence_type_report'
   VIEW_FAMILY_RECORD = 'view_family_record'
   CASE_FROM_FAMILY = 'case_from_family'
   REFERRALS_TRANSFERS_REPORT = 'referrals_transfers_report'
+  LINK_INCIDENT_TO_CASE = 'link_incident_to_case'
   LINK_FAMILY_RECORD = 'link_family_record'
   REMOVE_ALERT = 'remove_alert'
 
@@ -195,7 +202,7 @@ class Permission < ValueObject
     INCIDENT => [
       READ, CREATE, WRITE, ENABLE_DISABLE_RECORD, FLAG, FLAG_RESOLVE_ANY, EXPORT_LIST_VIEW, EXPORT_CSV, EXPORT_EXCEL,
       EXPORT_PDF, EXPORT_INCIDENT_RECORDER, EXPORT_JSON, EXPORT_CUSTOM, IMPORT, SYNC_MOBILE, CHANGE_LOG,
-      EXPORT_MRM_VIOLATION_XLS, REMOVE_ALERT, ASSIGN, MANAGE
+      EXPORT_MRM_VIOLATION_XLS, REMOVE_ALERT, VERIFY_MRM, ASSIGN, LINK_INCIDENT_TO_CASE, MANAGE
     ],
     TRACING_REQUEST => [
       READ, CREATE, WRITE, ENABLE_DISABLE_RECORD, FLAG, FLAG_RESOLVE_ANY, EXPORT_LIST_VIEW, EXPORT_CSV, EXPORT_EXCEL,
@@ -216,8 +223,9 @@ class Permission < ValueObject
     WEBHOOK => [CREATE, READ, WRITE, DELETE, MANAGE],
     REPORT => [READ, GROUP_READ, AGENCY_READ, CREATE, WRITE, MANAGE],
     MANAGED_REPORT => [
-      VIOLATION_REPORT, GBV_STATISTICS_REPORT, GHN_REPORT, INDIVIDUAL_CHILDREN, WORKFLOW_REPORT, VIOLENCE_TYPE_REPORT,
-      REFERRALS_TRANSFERS_REPORT
+      VIOLATION_REPORT, GBV_STATISTICS_REPORT, GHN_REPORT, INDIVIDUAL_CHILDREN, WORKFLOW_REPORT,
+      CASES_WORKFLOW_REPORT, VIOLENCE_TYPE_REPORT, REFERRALS_TRANSFERS_REPORT, PROTECTION_CONCERNS_REPORT,
+      FOLLOWUPS_REPORT, SERVICES_REPORT, REPORTING_LOCATIONS_REPORT
     ],
     METADATA => [MANAGE],
     POTENTIAL_MATCH => [READ, VIEW_AUDIO, VIEW_PHOTO, MANAGE],

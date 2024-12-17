@@ -1,6 +1,6 @@
 // Copyright (c) 2014 - 2023 UNICEF. All rights reserved.
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import PropTypes from "prop-types";
 import { useFormContext } from "react-hook-form";
 import { useLocation } from "react-router-dom";
@@ -16,7 +16,7 @@ import DatePickers from "./date-pickers";
 import { getDatesValue } from "./utils";
 import { NAME } from "./constants";
 
-const Component = ({ filter, mode, moreSectionFilters, setMoreSectionFilters, reset, setReset }) => {
+function Component({ filter, mode, moreSectionFilters = {}, setMoreSectionFilters, reset, setReset }) {
   const i18n = useI18n();
 
   const { register, setValue, getValues } = useFormContext();
@@ -28,14 +28,20 @@ const Component = ({ filter, mode, moreSectionFilters, setMoreSectionFilters, re
   )?.[0]?.id;
   const [selectedField, setSelectedField] = useState(valueSelectedField || "");
   const location = useLocation();
-  const queryParams = qs.parse(location.search.replace("?", ""));
-  const queryParamsKeys = Object.keys(queryParams);
+  const queryString = location.search.replace("?", "");
+  const queryParams = useMemo(() => qs.parse(queryString), [queryString]);
+  const queryParamsKeys = useMemo(() => Object.keys(queryParams), [queryString]);
+
+  const setSecondaryValues = (name, values) => {
+    setValue(name, getDatesValue(values, dateIncludeTime));
+    setInputValue(getDatesValue(values, dateIncludeTime));
+  };
 
   const handleSelectedField = event => {
     const { value } = event.target;
 
     setSelectedField(value);
-    setValue(value, getDatesValue(undefined, dateIncludeTime));
+    setSecondaryValues(value, inputValue);
 
     if (mode?.secondary) {
       handleMoreFiltersChange(moreSectionFilters, setMoreSectionFilters, value, {});
@@ -55,11 +61,6 @@ const Component = ({ filter, mode, moreSectionFilters, setMoreSectionFilters, re
         setMoreSectionFilters
       );
     }
-  };
-
-  const setSecondaryValues = (name, values) => {
-    setValue(name, getDatesValue(values, dateIncludeTime));
-    setInputValue(getDatesValue(values, dateIncludeTime));
   };
 
   useEffect(() => {
@@ -85,7 +86,7 @@ const Component = ({ filter, mode, moreSectionFilters, setMoreSectionFilters, re
         }
       }
     };
-  }, [selectedField]);
+  }, [selectedField, queryParams]);
 
   return (
     <Panel
@@ -118,11 +119,7 @@ const Component = ({ filter, mode, moreSectionFilters, setMoreSectionFilters, re
       </div>
     </Panel>
   );
-};
-
-Component.defaultProps = {
-  moreSectionFilters: {}
-};
+}
 
 Component.propTypes = {
   filter: PropTypes.object.isRequired,

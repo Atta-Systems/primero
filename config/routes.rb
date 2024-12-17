@@ -40,7 +40,9 @@ Rails.application.routes.draw do
       resources :primero, only: %i[index]
 
       resources :children, as: :cases, path: :cases do
-        resources :children_incidents, as: :incidents, path: :incidents, only: %i[index new]
+        resources :children_incidents, as: :incidents, path: :incidents, only: %i[index new] do
+          post '/', to: 'children_incidents#update_bulk', on: :collection
+        end
         resources :flags, only: %i[index create update]
         resources :alerts, only: %i[index destroy]
         resources :assigns, only: %i[index create]
@@ -48,7 +50,7 @@ Rails.application.routes.draw do
         resources :transfers, only: %i[index create update]
         resources :transfer_requests, only: %i[index create update]
         resources :transitions, only: [:index]
-        resources :attachments, only: %i[create destroy]
+        resources :attachments, only: %i[create destroy update]
         resources :approvals, only: [:update]
         resources :potential_matches, only: [:index]
         resources :webhook_syncs, as: :sync, path: :sync, only: [:create]
@@ -72,6 +74,7 @@ Rails.application.routes.draw do
         resources :transitions, only: [:index]
         post :flags, to: 'flags#create_bulk', on: :collection
         get :record_history, to: 'record_histories#index'
+        get :get_case_to_link, to: 'incidents#get_case_to_link', on: :collection
         collection do
           post :assigns, to: 'assigns#create_bulk'
         end

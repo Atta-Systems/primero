@@ -39,6 +39,13 @@
   width: 100%;
 }
 
+.paper {
+  & ul {
+    width: fit-content;
+    overflow: auto;
+  }
+}
+
 .dateContainer {
   width: 100%
 }
@@ -87,29 +94,4 @@
 .yellowChipOutlined {
   border-color: var(--c-red-low);
   color: var(--c-red-low);
-}
-
-.searchContainer {
-  display: flex;
-  align-items: center;
-  margin-bottom: 2em;
-}
-
-.searchIconButton {
-  padding: 6px;
-  margin-left: 5px;
-}
-
-.searchInput {
-  flex: 1
-}
-
-.searchInputContainer {
-  border-radius: 6px;
-  background-color: var(--c-white);
-  border: 1px solid var(--c-mid-grey);
-  display: flex;
-  flex: 1;
-  height: 34px;
-  align-items: center;
 }

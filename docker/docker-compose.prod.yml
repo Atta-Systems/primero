@@ -14,6 +14,11 @@ services:
     expose:
       - "80"
       - "443"
+    ports:
+      - "80:80"
+      - "443:443"
+    profiles:
+      - app
     volumes:
       - 'certbot_certificates:/etc/letsencrypt'
       - 'certbot_challenges:/usr/share/nginx/html/.well-known/acme-challenge'
@@ -41,6 +46,8 @@ services:
   solr:
     networks:
       - default
+    profiles:
+      - solr
     env_file:
       - docker/defaults.env
       - docker/local.env

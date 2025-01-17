@@ -21,6 +21,7 @@
 
 .linkButtonContainer {
   display: flex;
+  align-items: center;
 
   & span {
     padding-right: 3px;
@@ -56,7 +57,9 @@
 
 .idpSelectContainer {
   display: flex;
-  margin-top: 5px;
+  margin: .2em 0 .5em 0;
+  align-items: center;
+
   & form {
     min-width: 80%;
     margin-right: 5%;
@@ -64,10 +67,23 @@
   & span > button {
     min-height: 38px;
   }
+  & :global(.MuiTextField-root) {
+    margin: 0;
+  }
+}
+
+.loginButton {
+  background: var(--c-login-button-bg);
+  color: var(--c-login-button-text);
+
+  &:hover {
+    filter: brightness(80%);
+    background-color: var(--c-login-button-bg) !important;
+  }
 }
 
 
-@media (max-width:599.95px) {
+@media (max-width:600px) {
   .loginSelection,
   .logoutSelection {
     & button {

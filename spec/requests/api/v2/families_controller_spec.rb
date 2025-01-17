@@ -11,7 +11,6 @@ describe Api::V2::FamiliesController, type: :request do
     family2
     family3
     family4
-    Sunspot.commit
   end
 
   let(:family1) do
@@ -76,6 +75,13 @@ describe Api::V2::FamiliesController, type: :request do
         expect(json['metadata']['total']).to eq(4)
         expect(json['metadata']['per']).to eq(20)
         expect(json['metadata']['page']).to eq(1)
+      end
+
+      it_behaves_like 'a paginated resource' do
+        let(:action) do
+          { resource: 'families', login_params: { permissions: [Permission.new(resource: Permission::FAMILY, actions: [Permission::READ])],
+                                                  group_permission: Permission::GROUP } }
+        end
       end
     end
 

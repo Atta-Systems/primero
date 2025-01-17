@@ -158,6 +158,9 @@ describe Api::V2::UsersController, type: :request do
       agency_id: @agency_a.id,
       role: @role,
       identity_provider_id: @identity_provider_a.id,
+      agency_office: 'my office 1',
+      locale: 'en',
+      services: ['service1'],
       user_groups: [@user_group_a]
     )
 
@@ -646,7 +649,9 @@ describe Api::V2::UsersController, type: :request do
         data: {
           full_name: 'Updated User 1',
           user_group_unique_ids: ['user-group-1'],
-          identity_provider_unique_id: @identity_provider_b.unique_id
+          identity_provider_unique_id: @identity_provider_b.unique_id,
+          agency_office: nil,
+          services: %w[service1 service2]
         }
       }
 
@@ -657,7 +662,39 @@ describe Api::V2::UsersController, type: :request do
       user1 = User.find_by(id: @user_a.id)
       expect(user1.full_name).to eq('Updated User 1')
       expect(user1.user_groups.map(&:unique_id)).to eq(params[:data][:user_group_unique_ids])
+      expect(user1.agency_office).to be_nil
+      expect(user1.services).to eq(%w[service1 service2])
       expect(user1.identity_provider.unique_id).to eq(@identity_provider_b.unique_id)
+    end
+
+    it 'keeps user signed in when password changed' do
+      sign_in(@user_d)
+      params = {
+        data: {
+          password: 'primer0!',
+          password_confirmation: 'primer0!'
+        }
+      }
+      patch("/api/v2/users/#{@user_d.id}", params:)
+      expect(response).to have_http_status(200)
+      get('/api/v2/roles')
+      expect(response).to have_http_status(200)
+      expect(controller.current_user).to eq(@user_d)
+    end
+
+    it 'does not change logged in user session when password changed on another user' do
+      sign_in(@super_user)
+      params = {
+        data: {
+          password: 'primer0!',
+          password_confirmation: 'primer0!'
+        }
+      }
+      patch("/api/v2/users/#{@user_c.id}", params:)
+      expect(response).to have_http_status(200)
+      get('/api/v2/roles')
+      expect(response).to have_http_status(200)
+      expect(controller.current_user).to eq(@super_user)
     end
 
     it "returns 403 if user isn't authorized to update users" do
@@ -726,6 +763,7 @@ describe Api::V2::UsersController, type: :request do
         data: {
           role_unique_id: 'test-role-1',
           identity_provider_unique_id: 'primeroims_2',
+          agency_id: @agency_a.id,
           user_name:
         }
       }
@@ -737,6 +775,7 @@ describe Api::V2::UsersController, type: :request do
       expect(response).to have_http_status(200)
       expect(json['data']['id']).to eq(@user_d.id)
       expect(@user_d.role.unique_id).to eq(@role_manage_user.unique_id)
+      expect(@user_d.agency.unique_id).to eq(@agency_b.unique_id)
       expect(@user_d.user_name).not_to eq(user_name)
       expect(@user_d.identity_provider.unique_id).to eq(@identity_provider_a.unique_id)
     end

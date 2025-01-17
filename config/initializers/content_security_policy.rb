@@ -33,7 +33,7 @@ Rails.application.config.content_security_policy do |policy|
   policy.script_src(*script_sources)
   policy.style_src(*style_sources)
   policy.child_src(*child_sources)
-  policy.frame_src(:none)
+  policy.frame_src('https://auth.primero.anpdca.ro/', :self)
   policy.base_uri(:self)
 
   # Specify URI for violation reports
